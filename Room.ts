@@ -1,13 +1,13 @@
-import GameMap from "./Map";
+import MapBase from "./Map";
 import Player from "./Player";
 
 export default class Room 
 {
     id:string;
-    map:GameMap;
+    map:MapBase;
     players:Player[] = [];
 
-    constructor (map:GameMap)
+    constructor (map:MapBase)
     {
         this.id = Math.random().toString(16).slice(2);
         this.map = map;
