@@ -1,5 +1,5 @@
 import Asset from "./Asset";
-import GameMap from "./Map";
+import MapBase from "./Map";
 import Player from "./Player";
 import Room from "./Room";
 
