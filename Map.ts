@@ -2,7 +2,7 @@ import Asset from "./Asset";
 import Room from "./Room";
 
 
-export default class GameMap extends Asset
+export default class MapBase extends Asset
 {
     requiresUnlock:boolean = true;
 
@@ -17,7 +17,7 @@ export default class GameMap extends Asset
     }
 }
 
-export class MapBattle extends GameMap
+export class MapBattle extends MapBase
 {
 }
 

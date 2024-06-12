@@ -14,7 +14,7 @@ export default class Matchmaker
 
     public static create (player:Player, mapId:string) : string
     {
-        const map = Asset.Load (mapId) as GameMap;
+        const map = Asset.Load (mapId) as MapBase;
 
         if (!player.hasUnlockedMap (map))
             return 'Map has not been unlocked!';
