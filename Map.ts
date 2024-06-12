@@ -1,5 +1,5 @@
 import Asset from "./Asset";
-import Room from "./Room";
+import Room, { RoomBattle } from "./Room";
 
 
 export default class MapBase extends Asset
@@ -19,6 +19,9 @@ export default class MapBase extends Asset
 
 export class MapBattle extends MapBase
 {
+    newRoom(): Room {
+        return new RoomBattle (this);
+    }
 }
 
 export class MapPVP extends MapBattle

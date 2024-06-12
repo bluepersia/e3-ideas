@@ -24,3 +24,8 @@ export default class Room
     }
 }
 
+export class RoomBattle extends Room
+{
+
+}
+
