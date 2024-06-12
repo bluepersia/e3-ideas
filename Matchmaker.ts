@@ -19,7 +19,7 @@ export default class Matchmaker
         if (!player.hasUnlockedMap (map))
             return 'Map has not been unlocked!';
 
-        const newRoom = new Room (map);
+        const newRoom = map.newRoom ();
         newRoom.addPlayer (player);
 
         return '';

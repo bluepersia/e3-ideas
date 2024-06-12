@@ -1,4 +1,5 @@
 import Asset from "./Asset";
+import Room from "./Room";
 
 
 export default class GameMap extends Asset
@@ -10,9 +11,17 @@ export default class GameMap extends Asset
         return 4;
     }
 
+    newRoom () : Room
+    {
+        return new Room (this);
+    }
 }
 
-export class MapPVP extends GameMap
+export class MapBattle extends GameMap
+{
+}
+
+export class MapPVP extends MapBattle
 {
     size:number = 4;
 
