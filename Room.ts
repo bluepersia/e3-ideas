@@ -16,6 +16,7 @@ export interface IRoom
     hasSpace: () => boolean;
     addPlayer: (player:Player) => void;
     broadcast: (msgId:string, ...values:string[]) => void;
+    onPlayerLeft: (player:Player) => void;
 }
 
 export interface IRoomStrong<TMap extends MapBase> extends IRoom
@@ -50,6 +51,11 @@ export default class Room<TMap extends MapBase> implements IRoomStrong<TMap>
     broadcast (msgId:string, ...values:string[]) : void 
     {
         this.players.forEach (p => p.send (msgId, ...values));
+    }
+
+    onPlayerLeft (player:Player) : void 
+    {
+        this.broadcast ('PlayerLeft', player.character.id);
     }
 }
 
@@ -98,6 +104,7 @@ export interface IRoomBattle extends IRoomStrong<MapBattle>
     getSpawnData: (entity:Entity) => string[];
     getActivePlayers: () => Player[];
     nextTurn: () => void;
+    skipTurn: () => void;
     getCurrentTurnEntity: () => Entity;
     startTurn: () => void;
 
@@ -174,10 +181,32 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
 
     broadcastToLobby (msgId:string, includeListeners:boolean, ...args:any[]) : void 
     {
-        this.getLobbyPlayers (includeListeners).forEach (p => p.send (msgId, args));
+        this.getLobbyPlayers (includeListeners).forEach (p => p.send (msgId, ...args));
     }
 
+    override onPlayerLeft(player: Player): void {
 
+
+        if (this.getCurrentTurnEntity () === player.character)
+            this.skipTurn ();
+        
+
+        for (let i = 0; i < 2; i++)
+        {
+            const group = this.board[i];
+            for (let j = 0; j < group.length; j++)
+            {
+                const piece = group[j];
+                if (piece.entity === player.character)
+                {
+                    piece.entity = null;
+                    this.broadcastToLobby ('SetLobbyPosition', true, i, j, '', false);
+                }
+            }
+        }
+
+        super.onPlayerLeft(player);
+    }
   
 
 
@@ -311,7 +340,7 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
             this.fillGroupAndGeneratePositions (1);
             this.generatePositions (0);
             for (let i = 0; i < this.board[0].length; i++)
-                this.getActivePlayers ().forEach (p => p.send ('SetPosition', this.board[0][i].position.join('_')));
+                this.broadcastToActivePlayers ('SetPosition', 0, i, this.board[0][i].position.join('_'));
 
             this.spawnWave ();
 
@@ -324,7 +353,7 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
 
     endGame () : void 
     {
-    
+        this.turn = [-1, -1];
     }
 
 
@@ -382,6 +411,11 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
         })
     }
 
+    broadcastToActivePlayers (msgId:string, ...args:any[]) : void 
+    {
+        this.getActivePlayers ().forEach (p => p.send (msgId, ...args));
+    }
+
 
     nextTurn () : void 
     {
@@ -395,7 +429,8 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
             if (nextIndex >= group.length)
                 nextIndex = 0;
 
-            if (group[nextIndex].entity)
+            const piece = group[nextIndex];
+            if (piece.entity && piece.isActive)
             {
                 this.turnGroup = groupIndex;
                 this.turn[groupIndex] =nextIndex;
@@ -406,6 +441,32 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
         }
 
         
+    }
+
+    skipTurn () : void 
+    {
+        let turnIndex = this.turn[this.turnGroup];
+        let groupIndex = this.turnGroup;
+        let group = this.board[groupIndex];
+
+        while (turnIndex < group.length)
+        {
+            const nextIndex = turnIndex + 1;
+            if (nextIndex >= group.length)
+            {
+                groupIndex = groupIndex === 0 ? 1 : 0;
+                group = this.board[groupIndex];
+                turnIndex = -1;
+                continue;
+            }
+            const piece = group[nextIndex];
+            if (piece.entity && piece.isActive)
+            {
+                this.turnGroup = groupIndex;
+                this.turn[groupIndex] = nextIndex;
+                this.startTurn ();
+            }
+        }
     }
 
     getCurrentTurnEntity () : Entity
