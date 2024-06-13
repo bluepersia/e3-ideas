@@ -318,11 +318,11 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
     {
         const groupIndex = this.turnGroup === 1 ? 0 : 1;
         const group =this.board[groupIndex];
-        const turnIndex =this.turn[groupIndex];
+        let turnIndex =this.turn[groupIndex];
 
-        for (let i = turnIndex; i < group.length; i=i)
+        while (turnIndex < group.length)
         {
-            let nextIndex = i+=1;
+            let nextIndex = turnIndex + 1;
             if (nextIndex >= group.length)
                 nextIndex = 0;
 
@@ -333,9 +333,10 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
                 this.startTurn ();
                 return;
             }
-
-            i = nextIndex;
+            turnIndex = nextIndex;
         }
+
+        
     }
 
     getCurrentTurnEntity () : Entity
