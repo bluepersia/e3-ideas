@@ -6,6 +6,11 @@ export default class Matchmaker
  {
     private static rooms:IRoom[] = [];
 
+    public static getRoomById (id:string) : IRoom | null
+    {
+        return this.rooms.find (r => r.id === id) || null;
+    }
+
     public static list(mapId:string) : IRoom[]
     {
         return this.rooms.filter (room => room.mapBase.id === mapId && room.hasSpace());
