@@ -320,18 +320,21 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
         const group =this.board[groupIndex];
         const turnIndex =this.turn[groupIndex];
 
-        for (let i = turnIndex + 1; i < group.length; i++)
+        for (let i = turnIndex; i < group.length; i=i)
         {
-            if (group[i].entity)
+            let nextIndex = i+=1;
+            if (nextIndex >= group.length)
+                nextIndex = 0;
+
+            if (group[nextIndex].entity)
             {
                 this.turnGroup = groupIndex;
-                this.turn[groupIndex] =i;
+                this.turn[groupIndex] =nextIndex;
                 this.startTurn ();
                 return;
             }
 
-            if (i >= group.length)
-                i = 0;
+            i = nextIndex;
         }
     }
 
