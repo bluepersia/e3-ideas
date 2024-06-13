@@ -233,10 +233,10 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
             this.waveIndex++;
 
             if(this.waveIndex >= this.map.waves.length)
-                {
-                    this.endGame ();
-                    return
-                }
+            {
+                this.endGame ();
+                return
+            }
 
             this.fillGroupAndGeneratePositions (1);
             this.generatePositions (0);
