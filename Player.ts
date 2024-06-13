@@ -20,7 +20,7 @@ export default class Player
         return true;
     }
 
-    public send (msgId:string, ...values:string[]) : void 
+    public send (msgId:string, ...values:any[]) : void 
     {
         
     }

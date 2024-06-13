@@ -5,4 +5,13 @@ export interface ICharacter  extends IEntity
 
 }
 
-export default class Character extends Entity implements ICharacter {}
+export default class Character extends Entity implements ICharacter {
+
+    get id () : string 
+    {
+        return this.name;
+    }
+
+
+
+}

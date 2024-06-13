@@ -1,6 +1,6 @@
 import Entity, { EntityState } from "./Entity";
 import Enemy from "./Enemy";
-import MapBase, { MapBattle, MapPvE } from "./Map";
+import MapBase, { MapBattle, MapPVP, MapPvE } from "./Map";
 import Player from "./Player";
 import AssetLibrary from "./AssetLibrary";
 
@@ -69,6 +69,7 @@ export class BattlePiece implements IBattlePiece
 
 export interface IRoomBattle extends IRoomStrong<MapBattle>
 {
+    lobbyListeners: Player[];
     board:BattlePiece[][];
     waveIndex:number;
     isStarted:boolean;
@@ -76,6 +77,10 @@ export interface IRoomBattle extends IRoomStrong<MapBattle>
     turn:[number, number];
     turnStamp:number;
 
+    listenLobby: (player:Player) => void;
+    stopListeningLobby: (player:Player) => void;
+    getLobbyPlayers: () => Player[];
+    broadcastToLobby: (msgId:string, includeListeners:boolean, ...args:any[]) => void;
     getPiece: (groupIndex:number, index:number) => BattlePiece|null;
     getPieceByEntity: (entity:Entity) => BattlePiece|null;
     countEntities: (groupIndex:number) => number;
@@ -100,6 +105,7 @@ export interface IRoomBattle extends IRoomStrong<MapBattle>
 
 export class RoomBattle extends Room<MapBattle> implements IRoomBattle
 {
+    lobbyListeners: Player[] = [];
     board:BattlePiece[][] = [[], []];
     waveIndex = 0;
     isStarted:boolean = false;
@@ -113,6 +119,59 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
 
         this.generateBoard ();
     }
+
+
+    listenLobby (player:Player) : void 
+    {
+        this.lobbyListeners.push (player);
+
+        this.players.forEach (p => player.send ('SpawnLobbyPlayer', player.character.id, player.character.level));
+
+        player.send ('BoardSize', 0, this.board[0].length);
+
+        this.board[0].forEach ((piece, index) => {
+            if (piece.entity)
+                player.send ('SetLobbyPosition', 0, index, piece.entity.id, piece.isActive);
+        })
+
+
+        if (this.map instanceof MapPVP)
+        {
+
+            player.send ('BoardSize', 1, this.board[1].length);
+
+            this.board[1].forEach ((piece, index) => {
+                if (piece.entity)
+                    player.send ('SetLobbyPosition', 1, index, piece.entity.id, piece.isActive);
+            });
+            
+        }
+    }
+
+    stopListeningLobby(player: Player): void {
+        this.lobbyListeners = this.lobbyListeners.filter (p => p === player);
+    }
+
+    getLobbyPlayers (includeListeners:boolean =false) : Player[]
+    {
+        let players = this.players.filter (p => {
+            const piece = this.getPieceByEntity (p.character);
+            return !piece || !piece.isActive;
+        });
+
+        if (includeListeners)
+            players = players.concat (this.lobbyListeners);
+
+        return players;
+    }
+
+    broadcastToLobby (msgId:string, includeListeners:boolean, ...args:any[]) : void 
+    {
+        this.getLobbyPlayers (includeListeners).forEach (p => p.send (msgId, args));
+    }
+
+
+  
 
 
     getPiece (groupIndex:number, index:number) : BattlePiece | null
@@ -165,6 +224,7 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
             return;
 
             //Synchronize front-end to show position in lobby
+            this.broadcastToLobby ('SetLobbyPosition', true, groupIndex, index, piece.entity?.id || '', false);
     }
 
 
@@ -298,9 +358,9 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
         })
     }
 
-    getSpawnData (entity:Entity) : string[] 
+    getSpawnData (entity:Entity) : any[] 
     {
-        return [entity.id, entity.name, entity.level.toString (), this.getPieceByEntity (entity)!.position.join ('_')];
+        return [entity.id, entity.name, entity.level, this.getPieceByEntity (entity)!.position.join ('_')];
     }
 
 
