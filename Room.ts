@@ -123,21 +123,26 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
 
     listenLobby (player:Player) : void 
     {
+        //Start listening to lobby 
         this.lobbyListeners.push (player);
 
+        //Spawns the list of players
         this.players.forEach (p => player.send ('SpawnLobbyPlayer', player.character.id, player.character.level));
 
+        //Sends the board size for the first group (front-end then generates the visuals)
         player.send ('BoardSize', 0, this.board[0].length);
 
+        //Sends any positions taken to the player and displays them on board. If a piece is active, it will show green status that player is in battle.
         this.board[0].forEach ((piece, index) => {
             if (piece.entity)
                 player.send ('SetLobbyPosition', 0, index, piece.entity.id, piece.isActive);
         })
 
-
+        
         if (this.map instanceof MapPVP)
         {
-
+            //Do the same as with the first group with second, if it's a PvP map. 
+            
             player.send ('BoardSize', 1, this.board[1].length);
 
             this.board[1].forEach ((piece, index) => {
