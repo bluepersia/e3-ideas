@@ -142,7 +142,7 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
         if (this.map instanceof MapPVP)
         {
             //Do the same as with the first group with second, if it's a PvP map. 
-            
+
             player.send ('BoardSize', 1, this.board[1].length);
 
             this.board[1].forEach ((piece, index) => {
@@ -159,11 +159,13 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
 
     getLobbyPlayers (includeListeners:boolean =false) : Player[]
     {
+        //Only get players that have no position or are inactive/out of battel.
         let players = this.players.filter (p => {
             const piece = this.getPieceByEntity (p.character);
             return !piece || !piece.isActive;
         });
-
+        
+        //Include lobby listeners? then add them too 
         if (includeListeners)
             players = players.concat (this.lobbyListeners);
 
