@@ -383,7 +383,7 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
         this.spawnGroupForPlayer (player, this.board[0]);
         this.spawnGroupForPlayer (player, this.board[1]);
 
-        this.getPieceByEntity (player.character)!.isActive = true;
+        this.broadcastToLobby ('SetLobbyActive', true, player.character.id);
         this.broadcast ('SpawnEntity', ...this.getSpawnData (player.character));
     }
     spawnGroupForPlayer (player:Player, group:BattlePiece[]) : void 
