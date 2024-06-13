@@ -74,6 +74,7 @@ export interface IRoomBattle extends IRoomStrong<MapBattle>
     isStarted:boolean;
     turnGroup:number;
     turn:[number, number];
+    turnStamp:number;
 
     getPiece: (groupIndex:number, index:number) => BattlePiece|null;
     getPieceByEntity: (entity:Entity) => BattlePiece|null;
@@ -104,6 +105,7 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
     isStarted:boolean = false;
     turnGroup:number = 0;
     turn:[number, number] = [-1, -1];
+    turnStamp: number = Date.now ();
 
     constructor (map:MapBattle) 
     {
@@ -346,11 +348,12 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
 
     startTurn () : void 
     {
+        const stamp = this.turnStamp = Date.now ();
         this.broadcast ('SetTurn', this.getCurrentTurnEntity ().id);
         
         setTimeout (() =>
         {
-            if (this.getCurrentTurnEntity ().state === EntityState.Idle)
+            if (this.turnStamp === stamp && this.getCurrentTurnEntity ().state === EntityState.Idle)
                 this.nextTurn ();
         },30000);
     }
