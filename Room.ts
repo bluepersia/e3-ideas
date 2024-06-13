@@ -1,7 +1,6 @@
-import EnemyAsset from "./EnemyAsset";
 import Entity, { EntityState } from "./Entity";
 import Enemy from "./Enemy";
-import MapBase, { MapBattle, MapPVP, MapPvE } from "./Map";
+import MapBase, { MapBattle, MapPvE } from "./Map";
 import Player from "./Player";
 import AssetLibrary from "./AssetLibrary";
 
@@ -81,8 +80,10 @@ export interface IRoomBattle extends IRoomStrong<MapBattle>
     countEntities: (groupIndex:number) => number;
     isGameReady:  () => boolean;
     choosePosition: (player:Player, groupIndex:number, index:number) => void;
+    generatePositions: (group:BattlePiece[], count:number, groupIndex:number) => void;
     generateBoard: () => void;
     spawnWave: () => void;
+    nextWave: () => void;
     onEnteredMap: (player:Player) => void;
     spawnPlayer: (player:Player) => void;
     spawnGroupForPlayer: (player:Player, group:BattlePiece[]) => void;
@@ -163,18 +164,11 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
     }
 
 
-
-
-    generateBoard () : void 
+    generatePositions (group:BattlePiece[], count:number, groupIndex:number=0) : void
     {
-        this.board = [[], []];
+        group.fill (new BattlePiece (), 0, count);
 
-        for (let i = 0; i < 2; i++)
-        {
-            const group = this.board[i];
-            group.fill (new BattlePiece (), 0, this.map.getSizeAt (i, this.waveIndex));
-
-            if (group.length === 4)
+        if (group.length === 4)
             {
                 group[0].position = [100, 400];
                 group[1].position = [400, 400];
@@ -187,21 +181,28 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
                 group[1].position = [400, 250];
                 group[2].position = [100, 100];
             }
-            
+
+        if (groupIndex === 1)
+            group.forEach (piece => { piece.position = [(SCREEN_WIDTH - piece.position[0]), piece.position[1]]; });
+
+        group.forEach (piece => { 
+            piece.position [0] += (this.waveIndex * SCREEN_WIDTH);
+        })
+    }
+
+    generateBoard () : void 
+    {
+        this.board = [[], []];
+
+        for (let i = 0; i < 2; i++)
+        {
+            const group = this.board[i];
+            this.generatePositions (group, this.map.getSizeAt (i, 0), i);
         }
 
-        //Align second group to the right of the screen
-        this.board[1].forEach (piece => { piece.position = [(SCREEN_WIDTH - piece.position[0]), piece.position[1]]; })
-
-        this.board[0].forEach (piece => { 
-            piece.position [0] += (this.waveIndex * SCREEN_WIDTH);
-        })
-        this.board[1].forEach (piece => { 
-            piece.position [0] += (this.waveIndex * SCREEN_WIDTH);
-        })
-        
         this.spawnWave ();
     }
+
 
     spawnWave () : void 
     {
@@ -218,6 +219,32 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
 
                 this.getActivePlayers ().forEach (p =>this.spawnGroupForPlayer (p, this.board[1]));
             }
+    }
+
+
+    nextWave () : void 
+    {
+        if (this.map instanceof MapPvE)
+        {
+            this.waveIndex++;
+
+            if(this.waveIndex >= this.map.waves.length)
+                this.endGame ();
+
+            this.board[1] = [];
+            this.generatePositions (this.board[1], this.map.waves[this.waveIndex].length, 1);
+            this.spawnWave ();
+
+            return;
+        }
+
+        this.endGame ();
+    }
+
+
+    endGame () : void 
+    {
+    
     }
 
 
