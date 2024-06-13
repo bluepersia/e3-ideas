@@ -167,8 +167,8 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
 
     fillGroupAndGeneratePositions (groupIndex:number=0) : void
     {
-        const group:BattlePiece[] = this.board[groupIndex] = [];
-        group.fill (new BattlePiece (), 0, this.map.getSizeAt (groupIndex, this.waveIndex));
+        const group:BattlePiece[] = this.board[groupIndex] = new BattlePiece[this.map.getSizeAt (groupIndex, this.waveIndex)];
+        group.fill (new BattlePiece (), 0, group.length);
 
         this.generatePositions (groupIndex);
     }
