@@ -85,6 +85,7 @@ export interface IRoomBattle extends IRoomStrong<MapBattle>
     generateBoard: () => void;
     spawnWave: () => void;
     nextWave: () => void;
+    endGame: () => void;
     onEnteredMap: (player:Player) => void;
     spawnPlayer: (player:Player) => void;
     spawnGroupForPlayer: (player:Player, group:BattlePiece[]) => void;
