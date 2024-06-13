@@ -80,7 +80,7 @@ export interface IRoomBattle extends IRoomStrong<MapBattle>
     countEntities: (groupIndex:number) => number;
     isGameReady:  () => boolean;
     choosePosition: (player:Player, groupIndex:number, index:number) => void;
-    fillAndGeneratePositions: (group:BattlePiece[], count:number, groupIndex:number) => void;
+    fillGroupAndGeneratePositions: (group:BattlePiece[], count:number, groupIndex:number) => void;
     generateBoard: () => void;
     spawnWave: () => void;
     nextWave: () => void;
@@ -164,8 +164,9 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
     }
 
 
-    fillBoardAndGeneratePositions (group:BattlePiece[], count:number, groupIndex:number=0) : void
+    fillGroupAndGeneratePositions (groupIndex:number=0, count:number) : void
     {
+        const group:BattlePiece[] = this.board[groupIndex] = [];
         group.fill (new BattlePiece (), 0, count);
 
         if (group.length === 4)
@@ -192,13 +193,9 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
 
     generateBoard () : void 
     {
-        this.board = [[], []];
-
         for (let i = 0; i < 2; i++)
-        {
-            const group = this.board[i];
-            this.fillBoardAndGeneratePositions (group, this.map.getSizeAt (i, 0), i);
-        }
+            this.fillGroupAndGeneratePositions (i, this.map.getSizeAt (i, 0));
+        
 
         this.spawnWave ();
     }
@@ -231,8 +228,7 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
             if(this.waveIndex >= this.map.waves.length)
                 this.endGame ();
 
-            this.board[1] = [];
-            this.fillBoardAndGeneratePositions (this.board[1], this.map.waves[this.waveIndex].length, 1);
+            this.fillGroupAndGeneratePositions (1, this.map.waves[this.waveIndex].length);
             this.spawnWave ();
 
             return;
