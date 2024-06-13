@@ -169,6 +169,12 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
         const group:BattlePiece[] = this.board[groupIndex] = [];
         group.fill (new BattlePiece (), 0, this.map.getSizeAt (groupIndex, this.waveIndex));
 
+        this.generatePositions (groupIndex);
+    }
+
+    generatePositions (groupIndex:number) : void 
+    {
+        const group = this.board[groupIndex];
         if (group.length === 4)
             {
                 group[0].position = [100, 400];
@@ -229,6 +235,10 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
                 this.endGame ();
 
             this.fillGroupAndGeneratePositions (1);
+            this.generatePositions (0);
+            for (let i = 0; i < this.board[0].length; i++)
+                this.getActivePlayers ().forEach (p => p.send ('SetPosition', this.board[0][i].position.join('_')));
+            
             this.spawnWave ();
 
             return;
