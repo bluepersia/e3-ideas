@@ -1,20 +1,22 @@
-import Asset from "./Asset";
-import MapBase from "./Map";
+import AssetLibrary from "./AssetLibrary";
 import Player from "./Player";
-import Room from "./Room";
+import {IRoom} from "./Room";
 
 export default class Matchmaker
  {
-    private static rooms:Room[] = [];
+    private static rooms:IRoom[] = [];
 
-    public static list(mapId:string) : Room[]
+    public static list(mapId:string) : IRoom[]
     {
-        return this.rooms.filter (room => room.map.id === mapId && room.hasSpace());
+        return this.rooms.filter (room => room.mapBase.id === mapId && room.hasSpace());
     }
 
     public static create (player:Player, mapId:string) : string
     {
-        const map = Asset.Load (mapId) as MapBase;
+        const map = AssetLibrary.getMapById (mapId);
+
+        if (!map)
+            return 'Map does not exist';
 
         if (!player.hasUnlockedMap (map))
             return 'Map has not been unlocked!';
@@ -25,9 +27,9 @@ export default class Matchmaker
         return '';
     }
 
-    public static join(player:Player, room:Room) : string 
+    public static join(player:Player, room:IRoom) : string 
     {
-        if (!player.hasUnlockedMap (room.map))
+        if (!player.hasUnlockedMap (room.mapBase))
             return 'Map has not been unlocked!';
 
         if (!room.hasSpace ())

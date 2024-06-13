@@ -1,9 +1,9 @@
-export default class Asset
+export interface IAsset 
 {
     id:string;
+}
 
-    public static Load (id:string) : Asset
-    {
-        return new Asset ();
-    }
+export default class Asset implements IAsset
+{
+    id:string;
 }
