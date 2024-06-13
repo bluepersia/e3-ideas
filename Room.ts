@@ -80,7 +80,8 @@ export interface IRoomBattle extends IRoomStrong<MapBattle>
     countEntities: (groupIndex:number) => number;
     isGameReady:  () => boolean;
     choosePosition: (player:Player, groupIndex:number, index:number) => void;
-    fillGroupAndGeneratePositions: (groupIndex:number, count:number) => void;
+    generatePositions: (groupIndex:number) => void;
+    fillGroupAndGeneratePositions: (groupIndex:number) => void;
     generateBoard: () => void;
     spawnWave: () => void;
     nextWave: () => void;
@@ -238,7 +239,7 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
             this.generatePositions (0);
             for (let i = 0; i < this.board[0].length; i++)
                 this.getActivePlayers ().forEach (p => p.send ('SetPosition', this.board[0][i].position.join('_')));
-            
+
             this.spawnWave ();
 
             return;
