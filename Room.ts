@@ -277,7 +277,7 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
     spawnGroupForPlayer (player:Player, group:BattlePiece[]) : void 
     {
         group.forEach (piece => {
-            if (piece.entity !== null && piece.entity != player.character && piece.isActive)
+            if (piece.entity !== null && piece.entity !== player.character && piece.isActive)
                 player.send ('SpawnEntity', ...this.getSpawnData (piece.entity))
         })
     }
