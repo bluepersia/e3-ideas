@@ -10,7 +10,8 @@ export interface IEntity
 export enum EntityState 
 {
     Idle,
-    Action
+    Action,
+    RunningToNextWave
 }
 export default class Entity implements IEntity
 {
