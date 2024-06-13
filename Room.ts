@@ -267,6 +267,9 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
             if (!this.isGameReady ())
                 return;
 
+            if (this.getPieceByEntity (player.character) === null)
+                return;
+
 
             this.isStarted = true;
             this.spawnPlayer (player);
