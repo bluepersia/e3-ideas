@@ -80,7 +80,7 @@ export interface IRoomBattle extends IRoomStrong<MapBattle>
     countEntities: (groupIndex:number) => number;
     isGameReady:  () => boolean;
     choosePosition: (player:Player, groupIndex:number, index:number) => void;
-    fillGroupAndGeneratePositions: (group:BattlePiece[], count:number, groupIndex:number) => void;
+    fillGroupAndGeneratePositions: (groupIndex:number, count:number) => void;
     generateBoard: () => void;
     spawnWave: () => void;
     nextWave: () => void;
