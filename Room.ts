@@ -241,9 +241,9 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
         return null;
     }
 
-    countEntities (groupdIndex):number 
+    countEntities (groupIndex):number 
     {
-        return this.board[groupdIndex].reduce ((prev, curr) => curr.entity === null ? prev : prev + 1, 0);
+        return this.board[groupIndex].reduce ((prev, curr) => curr.entity === null ? prev : prev + 1, 0);
     }
 
     isGameReady () : boolean
