@@ -1,5 +1,7 @@
 import { BattlePiece } from "./Room";
-import { ISkill, ISkillLevel } from "./Skill";
+import { ISkill, ISkillLevel, TargetType } from "./Skill";
+import { IRoomBattle } from "./Room";
+import Player from "./Player";
 
 export interface IEntity 
 {
@@ -7,8 +9,9 @@ export interface IEntity
     name:string;
     level:number;
     skills:ISkill[];
-    turnCount:number;
     state:EntityState;
+
+    action: (room:IRoomBattle, action:ISkill, targetGroupIndex:number, targetIndex:number) => string;
 }
 
 export enum EntityState 
@@ -32,9 +35,61 @@ export default class Entity implements IEntity
     name:string; 
     level:number;
     skills: ISkill[] = [];
-    turnCount: number = 0;
 
     state:EntityState = EntityState.Idle;
     
+    
+
+    action (room:IRoomBattle, action:ISkill, targetGroupIndex:number, targetIndex:number) : string
+    {
+        const indexes = room.getIndexesForEntity (this);
+
+        if (action.targetType === TargetType.Self)
+        {
+            targetGroupIndex = indexes[0];
+            targetIndex = indexes[1];
+        }
+        else 
+            if (action.targetType === TargetType.Opponent && targetGroupIndex === indexes[0])
+                return 'Target must be an opponent';
+            else if (action.targetType === TargetType.Ally && targetGroupIndex !== indexes[0])
+                return 'Target must be an ally';
+
+        const currentLevel = action.getCurrentLevel ();
+        const piece = room.getPieceByEntity (this)!;
+
+        if (!currentLevel.isReady (piece.turnCount))
+            return 'On cooldown';
+
+
+        let targets = [room.board[targetGroupIndex][targetIndex]];
+
+        if (action.isAoE)
+            targets = targets.concat (room.board[targetGroupIndex].filter (bp => bp.entity !== targets[0].entity && bp.entity !== null));
+
+
+        const effects = currentLevel.calculate (this, targets.map (t => t.entity!));
+
+        room.broadcastToActivePlayers ('Action', action.id, targets[0].entity!.id, action.duration, JSON.stringify (effects));
+        
+
+        let durationToEnemy = Math.abs (targets[0].position[0] - piece.position[0]) - action.range;
+        if (durationToEnemy < 0)
+            durationToEnemy = 0;
+
+        setTimeout (() => 
+            {
+                currentLevel.use ();
+
+                setTimeout (() => {
+                    
+                    piece.turnCount++;
+                    room.nextTurn ();
+
+                }, durationToEnemy);
+            }, durationToEnemy + action.duration);
+
+        return '';
+    }
    
 }

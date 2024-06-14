@@ -1,4 +1,4 @@
-import Entity, { EntityState } from "./Entity";
+import Entity, { EntityState, IEntity } from "./Entity";
 import Enemy from "./Enemy";
 import MapBase, { MapBattle, MapPVP, MapPvE } from "./Map";
 import Player from "./Player";
@@ -116,11 +116,10 @@ export interface IRoomBattle extends IRoomStrong<MapBattle>
     nextTurn: () => void;
     skipTurn: () => void;
     startTurn: () => void;
-    skill: (player:Player, skillId:string, targetGroupIndex:number, targetIndex:number) => string;
-    action: (entity:Entity, skill:ISkill, targetGroupIndex:number, targetIndex:number) => string;
 
     getPiece: (groupIndex:number, index:number) => BattlePiece|null;
-    getPieceByEntity: (entity:Entity) => BattlePiece|null;
+    getPieceByEntity: (entity:IEntity) => BattlePiece|null;
+    getIndexesForEntity: (entity:Entity) => [number, number];
     countEntities: (groupIndex:number) => number;
     generatePositions: (groupIndex:number) => void;
     fillGroupAndGeneratePositions: (groupIndex:number) => void;
@@ -130,6 +129,7 @@ export interface IRoomBattle extends IRoomStrong<MapBattle>
     endGame: () => void;
     getActivePlayers: () => Player[];
     getCurrentTurnEntity: () => Entity;
+    broadcastToActivePlayers: (msgId:string, ...args:any[]) => void;
 
 }
 
@@ -400,72 +400,7 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
     }
 
 
-    skill (player:Player, skillId:string, targetGroupIndex:number, targetIndex:number) : string
-    {
-        if (this.getCurrentTurnEntity () !== player.character)
-            return 'Not your turn!';
-
-        const skill = player.character.getSkillById (skillId);
-
-        if (!skill)
-            return 'You do not have this skill!';
-        
-        return this.action (player.character, skill, targetGroupIndex, targetIndex);
-
-    }
-
-    action (entity:Entity, action:ISkill, targetGroupIndex:number, targetIndex:number) : string
-    {
-        const indexes = this.getIndexesForEntity (entity);
-
-        if (action.targetType === TargetType.Self)
-        {
-            targetGroupIndex = indexes[0];
-            targetIndex = indexes[1];
-        }
-        else 
-            if (action.targetType === TargetType.Opponent && targetGroupIndex === indexes[0])
-                return 'Target must be an opponent';
-            else if (action.targetType === TargetType.Ally && targetGroupIndex !== indexes[0])
-                return 'Target must be an ally';
-
-        const currentLevel = action.getCurrentLevel ();
-        const piece = this.getPieceByEntity (entity)!;
-
-        if (!currentLevel.isReady (piece.turnCount))
-            return 'On cooldown';
-
-
-        let targets = [this.board[targetGroupIndex][targetIndex]];
-
-        if (action.isAoE)
-            targets = targets.concat (this.board[targetGroupIndex].filter (bp => bp.entity !== targets[0].entity && bp.entity !== null));
-
-
-
-        const effects = currentLevel.calculate (entity, targets.map (t => t.entity!));
-
-        this.broadcastToActivePlayers ('Action', action.id, targets[0].entity!.id, action.duration, JSON.stringify (effects));
-        
-
-        let durationToEnemy = Math.abs (targets[0].position[0] - piece.position[0]) - action.range;
-        if (durationToEnemy < 0)
-            durationToEnemy = 0;
-
-        setTimeout (() => 
-            {
-                currentLevel.use ();
-
-                setTimeout (() => {
-                    
-                    piece.turnCount++;
-                    this.nextTurn ();
-
-                }, durationToEnemy);
-            }, durationToEnemy + action.duration);
-
-        return '';
-    }
+  
     
 
     onMessage(player: Player, msgId: string, ...args: any[]): void {
@@ -479,13 +414,17 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
                 this.onEnteredMap (player);
             break;
             case "Action":
-                this.skill (player, args[0], Number (args[1]), Number (args[2]));
+                const err = player.character.useSkill (this, args[0], Number (args[1]), Number (args[2]));
+
+                if (err)
+                    player.send ('ActionError', err);
+                
                 break;
         }
     }
 
 
-    getIndexesForEntity (entity:Entity) : [number, number] 
+    getIndexesForEntity (entity:IEntity) : [number, number] 
     {
         for (let i = 0; i < 2; i++)
         {
@@ -510,7 +449,7 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
         return this.board[groupIndex][index];
     }
 
-    getPieceByEntity (entity:Entity) : BattlePiece | null
+    getPieceByEntity (entity:IEntity) : BattlePiece | null
     {
         this.board[0].forEach (piece => {
             if (piece.entity === entity)

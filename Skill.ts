@@ -1,5 +1,5 @@
 import Asset, { IAsset } from "./Asset";
-import Entity, { IEntity } from "./Entity";
+import { IEntity } from "./Entity";
 
 
 export interface ISkill extends IAsset
@@ -99,7 +99,8 @@ export class SkillLevel implements ISkillLevel
 
 export interface ISkillEffect
 {
-    value:number;
+    value:number;    
+    calculatedData:Map<IEntity, number>;
 
     calculate:(entity:IEntity, targets:IEntity[]) => ISkillEffectData[];
     use: () => void;
@@ -109,6 +110,9 @@ export class SkillEffect implements ISkillEffect
 {
     value: number = 0;
     time:number = 0;
+    
+    
+    calculatedData:Map<IEntity, number> = new Map<IEntity, number>;
 
     calculate(entity: IEntity, targets: IEntity[]): ISkillEffectData[]{
         return targets.map (t => new SkillEffectData (this.time, t.id, 'NaN', this.value));
@@ -120,5 +124,27 @@ export class SkillEffect implements ISkillEffect
 
 export class DealDamage extends SkillEffect
 {
- 
+
+    override calculate(entity: IEntity, targets: IEntity[]): ISkillEffectData[] {
+        return targets.map (t => 
+            {
+                const dmgRange = (Math.random () * 0.2 ) - 0.1;
+                let dmg = this.value + dmgRange;
+
+                const isCritical = Math.random () < .5;
+
+                if (isCritical)
+                    dmg *= 2;
+
+                this.calculatedData.set (t, dmg);
+
+                return new SkillEffectData (this.time, t.id, 'dmg', dmg);
+            });
+    }
+
+    use () : void
+    {
+
+            //Take away health
+    }
 }
