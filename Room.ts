@@ -99,12 +99,18 @@ export interface IRoomBattle extends IRoomStrong<MapBattle>
     stopListeningLobby: (player:Player) => void;
     getLobbyPlayers: () => Player[];
     broadcastToLobby: (msgId:string, includeListeners:boolean, ...args:any[]) => void;
+    removeEntityFromBoard: (entity:Entity) => void;
+
+    choosePosition: (player:Player, groupIndex:number, index:number) => void;
+    isGameReady:  () => boolean;
+    isPlayerReady: (player:Player) => boolean;
+    start: (player:Player) => void;
+
+    onMessage: (player:Player, msgId:string, ...args:any[]) => void;
+
     getPiece: (groupIndex:number, index:number) => BattlePiece|null;
     getPieceByEntity: (entity:Entity) => BattlePiece|null;
     countEntities: (groupIndex:number) => number;
-    isGameReady:  () => boolean;
-    isPlayerReady: (player:Player) => boolean;
-    choosePosition: (player:Player, groupIndex:number, index:number) => void;
     generatePositions: (groupIndex:number) => void;
     fillGroupAndGeneratePositions: (groupIndex:number) => void;
     generateBoard: () => void;
@@ -237,6 +243,64 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
             }
     }
 
+    choosePosition (player:Player, groupIndex:number, index:number) : void
+    {
+        const piece = this.getPiece (groupIndex, index);
+
+        if (!piece)
+            return;
+
+        if  (!piece.entity)
+            {
+                this.removeEntityFromBoard (player.character);
+                piece.entity = player.character;
+            }
+        else  if (piece.entity === player.character)
+                piece.entity = null;
+        else 
+            return;
+
+            //Synchronize front-end to show position in lobby
+            if (piece.entity)
+                this.broadcastToLobby ('SetLobbyPosition', true, groupIndex, index, piece.entity.id, false);
+            else   
+                this.broadcastToLobby ('RemoveLobbyPosition', true, groupIndex, index);
+    }
+
+    isGameReady () : boolean
+    {
+        return this.countEntities (0) >=  1 && this.countEntities(1) >= 1;
+    }
+
+    isPlayerReady (player: Player) : boolean
+    {
+        return this.getPieceByEntity (player.character) !== null;
+    }
+
+    start (player:Player) : void 
+    {
+        if (!this.isGameReady ())
+            return;
+        if (!this.isPlayerReady (player))
+            return;
+    
+        player.send ('Start');
+    }
+
+    
+
+    onMessage(player: Player, msgId: string, ...args: any[]): void {
+        switch (msgId)
+        {
+            case "Start":
+                this.start (player);
+                break;
+
+            case "EnteredMap":
+                this.onEnteredMap (player);
+            break;
+        }
+    }
 
     getPiece (groupIndex:number, index:number) : BattlePiece | null
     {
@@ -267,41 +331,7 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
         return this.board[groupIndex].reduce ((prev, curr) => curr.entity === null ? prev : prev + 1, 0);
     }
 
-    isGameReady () : boolean
-    {
-        return this.countEntities (0) >=  1 && this.countEntities(1) >= 1;
-    }
-
-    isPlayerReady (player: Player) : boolean
-    {
-        return this.getPieceByEntity (player.character) !== null;
-    }
     
-    
-    
-    choosePosition (player:Player, groupIndex:number, index:number) : void
-    {
-        const piece = this.getPiece (groupIndex, index);
-
-        if (!piece)
-            return;
-
-        if  (!piece.entity)
-            {
-                this.removeEntityFromBoard (player.character);
-                piece.entity = player.character;
-            }
-        else  if (piece.entity === player.character)
-                piece.entity = null;
-        else 
-            return;
-
-            //Synchronize front-end to show position in lobby
-            if (piece.entity)
-                this.broadcastToLobby ('SetLobbyPosition', true, groupIndex, index, piece.entity.id, false);
-            else   
-                this.broadcastToLobby ('RemoveLobbyPosition', true, groupIndex, index);
-    }
 
 
     fillGroupAndGeneratePositions (groupIndex:number=0) : void
@@ -527,21 +557,7 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
     }
 
 
-    onMessage(player: Player, msgId: string, ...args: any[]): void {
-        switch (msgId)
-        {
-            case "Start":
-                if (!this.isPlayerReady (player))
-                    return;
-            
-                player.send ('Start', this.map.id, this.id);
-                break;
-
-            case "EnteredMap":
-                this.onEnteredMap (player);
-            break;
-        }
-    }
+    
     
 }
 
