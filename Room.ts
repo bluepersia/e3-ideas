@@ -231,7 +231,7 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
                     if (groupPiece.entity === entity)
                     {
                         groupPiece.entity = null;
-                        this.broadcastToLobby ('SetLobbyPosition', true, i, j, '',  false);
+                        this.broadcastToLobby ('RemoveLobbyPosition', true, i, j);
                     }
                 }
             }
@@ -297,7 +297,10 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
             return;
 
             //Synchronize front-end to show position in lobby
-            this.broadcastToLobby ('SetLobbyPosition', true, groupIndex, index, piece.entity?.id || '', false);
+            if (piece.entity)
+                this.broadcastToLobby ('SetLobbyPosition', true, groupIndex, index, piece.entity.id, false);
+            else   
+                this.broadcastToLobby ('RemoveLobbyPosition', true, groupIndex, index);
     }
 
 
