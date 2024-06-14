@@ -3,6 +3,7 @@ import Enemy from "./Enemy";
 import MapBase, { MapBattle, MapPVP, MapPvE } from "./Map";
 import Player from "./Player";
 import AssetLibrary from "./AssetLibrary";
+import { ISkill, TargetType } from "./Skill";
 
 const SCREEN_WIDTH = 900;
 
@@ -76,6 +77,7 @@ interface IBattlePiece
     entity:Entity|null;
     position: [number, number];
     isActive:boolean;
+    turnCount:number;
 }
 
 export class BattlePiece implements IBattlePiece
@@ -83,6 +85,7 @@ export class BattlePiece implements IBattlePiece
     entity:Entity|null;
     position: [number, number];
     isActive:boolean = false;
+    turnCount: number = 0;
 }
 
 export interface IRoomBattle extends IRoomStrong<MapBattle>
@@ -106,6 +109,16 @@ export interface IRoomBattle extends IRoomStrong<MapBattle>
     isPlayerReady: (player:Player) => boolean;
     start: (player:Player) => void;
 
+    onEnteredMap: (player:Player) => void;
+    spawnPlayer: (player:Player) => void;
+    spawnGroupForPlayer: (player:Player, group:BattlePiece[]) => void;
+    getSpawnData: (entity:Entity) => string[];
+    nextTurn: () => void;
+    skipTurn: () => void;
+    startTurn: () => void;
+    skill: (player:Player, skillId:string, targetGroupIndex:number, targetIndex:number) => string;
+    action: (entity:Entity, skill:ISkill, targetGroupIndex:number, targetIndex:number) => string;
+
     getPiece: (groupIndex:number, index:number) => BattlePiece|null;
     getPieceByEntity: (entity:Entity) => BattlePiece|null;
     countEntities: (groupIndex:number) => number;
@@ -115,15 +128,8 @@ export interface IRoomBattle extends IRoomStrong<MapBattle>
     spawnWave: () => void;
     nextWave: () => void;
     endGame: () => void;
-    onEnteredMap: (player:Player) => void;
-    spawnPlayer: (player:Player) => void;
-    spawnGroupForPlayer: (player:Player, group:BattlePiece[]) => void;
-    getSpawnData: (entity:Entity) => string[];
     getActivePlayers: () => Player[];
-    nextTurn: () => void;
-    skipTurn: () => void;
     getCurrentTurnEntity: () => Entity;
-    startTurn: () => void;
 
 }
 
@@ -235,6 +241,7 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
                     if (groupPiece.entity === entity)
                     {
                         groupPiece.entity = null;
+                        groupPiece.turnCount = 0;
                         this.broadcastToLobby ('RemoveLobbyPosition', true, i, j);
                     }
                 }
@@ -285,6 +292,180 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
         player.send ('Start');
     }
 
+
+    onEnteredMap (player:Player) : void
+    {
+        if (!this.isStarted)
+        {
+            if (!this.isGameReady ())
+                return;
+
+            if (!!this.isPlayerReady (player))
+                return;
+
+
+            this.isStarted = true;
+            this.spawnPlayer (player);
+            this.nextTurn ();
+            return;
+        }
+
+        this.spawnPlayer (player);
+    }
+
+    spawnPlayer (player:Player) : void 
+    {
+        this.spawnGroupForPlayer (player, this.board[0]);
+        this.spawnGroupForPlayer (player, this.board[1]);
+
+        this.broadcastToLobby ('SetLobbyActive', true, player.character.id);
+        this.broadcast ('SpawnEntity', ...this.getSpawnData (player.character));
+    }
+    spawnGroupForPlayer (player:Player, group:BattlePiece[]) : void 
+    {
+        group.forEach (piece => {
+            if (piece.entity !== null && piece.entity !== player.character && piece.isActive)
+                player.send ('SpawnEntity', ...this.getSpawnData (piece.entity))
+        })
+    }
+
+    getSpawnData (entity:Entity) : any[] 
+    {
+        return [entity.id, entity.name, entity.level, this.getPieceByEntity (entity)!.position.join ('_')];
+    }
+
+
+    nextTurn () : void 
+    {
+        const groupIndex = this.turnGroup === 1 ? 0 : 1;
+        const group =this.board[groupIndex];
+        let turnIndex =this.turn[groupIndex];
+
+        while (turnIndex < group.length)
+        {
+            let nextIndex = turnIndex + 1;
+            if (nextIndex >= group.length)
+                nextIndex = 0;
+
+            const piece = group[nextIndex];
+            if (piece.entity && piece.isActive)
+            {
+                this.turnGroup = groupIndex;
+                this.turn[groupIndex] =nextIndex;
+                this.startTurn ();
+                return;
+            }
+            turnIndex = nextIndex;
+        }
+
+        
+    }
+
+    skipTurn () : void 
+    {
+        let turnIndex = this.turn[this.turnGroup];
+        let groupIndex = this.turnGroup;
+        let group = this.board[groupIndex];
+
+        while (turnIndex < group.length)
+        {
+            const nextIndex = turnIndex + 1;
+            if (nextIndex >= group.length)
+            {
+                groupIndex = groupIndex === 0 ? 1 : 0;
+                group = this.board[groupIndex];
+                turnIndex = -1;
+                continue;
+            }
+            const piece = group[nextIndex];
+            if (piece.entity && piece.isActive)
+            {
+                this.turnGroup = groupIndex;
+                this.turn[groupIndex] = nextIndex;
+                this.startTurn ();
+            }
+        }
+    }
+
+    startTurn () : void 
+    {
+        const stamp = this.turnStamp = Date.now ();
+        this.broadcast ('SetTurn', this.getCurrentTurnEntity ().id);
+        
+        setTimeout (() =>
+        {
+            if (this.turnStamp === stamp && this.getCurrentTurnEntity ().state === EntityState.Idle)
+                this.nextTurn ();
+        },30000);
+    }
+
+
+    skill (player:Player, skillId:string, targetGroupIndex:number, targetIndex:number) : string
+    {
+        if (this.getCurrentTurnEntity () !== player.character)
+            return 'Not your turn!';
+
+        const skill = player.character.getSkillById (skillId);
+
+        if (!skill)
+            return 'You do not have this skill!';
+        
+        return this.action (player.character, skill, targetGroupIndex, targetIndex);
+
+    }
+
+    action (entity:Entity, action:ISkill, targetGroupIndex:number, targetIndex:number) : string
+    {
+        const indexes = this.getIndexesForEntity (entity);
+
+        if (action.targetType === TargetType.Self)
+        {
+            targetGroupIndex = indexes[0];
+            targetIndex = indexes[1];
+        }
+        else 
+            if (action.targetType === TargetType.Opponent && targetGroupIndex === indexes[0])
+                return 'Target must be an opponent';
+            else if (action.targetType === TargetType.Ally && targetGroupIndex !== indexes[0])
+                return 'Target must be an ally';
+
+        const currentLevel = action.getCurrentLevel ();
+        const piece = this.getPieceByEntity (entity)!;
+
+        if (!currentLevel.isReady (piece.turnCount))
+            return 'On cooldown';
+
+
+        let targets = [this.board[targetGroupIndex][targetIndex]];
+
+        if (action.isAoE)
+            targets = targets.concat (this.board[targetGroupIndex].filter (bp => bp.entity !== targets[0].entity && bp.entity !== null));
+
+
+
+        const effects = currentLevel.calculate (entity, targets.map (t => t.entity!));
+
+        this.broadcastToActivePlayers ('Action', action.id, targets[0].entity!.id, action.duration, JSON.stringify (effects));
+        
+
+        let durationToEnemy = Math.abs (targets[0].position[0] - piece.position[0]) - action.range;
+        if (durationToEnemy < 0)
+            durationToEnemy = 0;
+
+        setTimeout (() => 
+            {
+                currentLevel.use ();
+
+                setTimeout (() => {
+                    
+                    piece.turnCount++;
+                    this.nextTurn ();
+
+                }, durationToEnemy);
+            }, durationToEnemy + action.duration);
+
+        return '';
+    }
     
 
     onMessage(player: Player, msgId: string, ...args: any[]): void {
@@ -297,9 +478,27 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
             case "EnteredMap":
                 this.onEnteredMap (player);
             break;
+            case "Action":
+                this.skill (player, args[0], Number (args[1]), Number (args[2]));
+                break;
         }
     }
 
+
+    getIndexesForEntity (entity:Entity) : [number, number] 
+    {
+        for (let i = 0; i < 2; i++)
+        {
+            const group = this.board[i];
+
+            for(let j = 0; j < group.length; j++)
+            {
+                if (group[j].entity === entity)
+                    return [i, j];
+            }
+        }
+        return [-1, -1];
+    }
     getPiece (groupIndex:number, index:number) : BattlePiece | null
     {
         if (this.board.length <= groupIndex)
@@ -323,6 +522,7 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
         });
         return null;
     }
+
 
     countEntities (groupIndex):number 
     {
@@ -426,46 +626,7 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
 
 
 
-    onEnteredMap (player:Player) : void
-    {
-        if (!this.isStarted)
-        {
-            if (!this.isGameReady ())
-                return;
-
-            if (!!this.isPlayerReady (player))
-                return;
-
-
-            this.isStarted = true;
-            this.spawnPlayer (player);
-            this.nextTurn ();
-            return;
-        }
-
-        this.spawnPlayer (player);
-    }
-
-    spawnPlayer (player:Player) : void 
-    {
-        this.spawnGroupForPlayer (player, this.board[0]);
-        this.spawnGroupForPlayer (player, this.board[1]);
-
-        this.broadcastToLobby ('SetLobbyActive', true, player.character.id);
-        this.broadcast ('SpawnEntity', ...this.getSpawnData (player.character));
-    }
-    spawnGroupForPlayer (player:Player, group:BattlePiece[]) : void 
-    {
-        group.forEach (piece => {
-            if (piece.entity !== null && piece.entity !== player.character && piece.isActive)
-                player.send ('SpawnEntity', ...this.getSpawnData (piece.entity))
-        })
-    }
-
-    getSpawnData (entity:Entity) : any[] 
-    {
-        return [entity.id, entity.name, entity.level, this.getPieceByEntity (entity)!.position.join ('_')];
-    }
+    
 
 
     getActivePlayers () : Player[]
@@ -485,74 +646,15 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
     }
 
 
-    nextTurn () : void 
-    {
-        const groupIndex = this.turnGroup === 1 ? 0 : 1;
-        const group =this.board[groupIndex];
-        let turnIndex =this.turn[groupIndex];
 
-        while (turnIndex < group.length)
-        {
-            let nextIndex = turnIndex + 1;
-            if (nextIndex >= group.length)
-                nextIndex = 0;
-
-            const piece = group[nextIndex];
-            if (piece.entity && piece.isActive)
-            {
-                this.turnGroup = groupIndex;
-                this.turn[groupIndex] =nextIndex;
-                this.startTurn ();
-                return;
-            }
-            turnIndex = nextIndex;
-        }
-
-        
-    }
-
-    skipTurn () : void 
-    {
-        let turnIndex = this.turn[this.turnGroup];
-        let groupIndex = this.turnGroup;
-        let group = this.board[groupIndex];
-
-        while (turnIndex < group.length)
-        {
-            const nextIndex = turnIndex + 1;
-            if (nextIndex >= group.length)
-            {
-                groupIndex = groupIndex === 0 ? 1 : 0;
-                group = this.board[groupIndex];
-                turnIndex = -1;
-                continue;
-            }
-            const piece = group[nextIndex];
-            if (piece.entity && piece.isActive)
-            {
-                this.turnGroup = groupIndex;
-                this.turn[groupIndex] = nextIndex;
-                this.startTurn ();
-            }
-        }
-    }
+   
 
     getCurrentTurnEntity () : Entity
     {
         return this.board[this.turnGroup][this.turn[this.turnGroup]].entity!;
     }
 
-    startTurn () : void 
-    {
-        const stamp = this.turnStamp = Date.now ();
-        this.broadcast ('SetTurn', this.getCurrentTurnEntity ().id);
-        
-        setTimeout (() =>
-        {
-            if (this.turnStamp === stamp && this.getCurrentTurnEntity ().state === EntityState.Idle)
-                this.nextTurn ();
-        },30000);
-    }
+    
 
 
     

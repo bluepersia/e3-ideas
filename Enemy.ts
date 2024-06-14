@@ -10,6 +10,7 @@ export interface IEnemy extends IEntity
 export default class Enemy extends Entity
 {
 
+    
     constructor (asset:IEnemyAsset) 
     {
         super ();

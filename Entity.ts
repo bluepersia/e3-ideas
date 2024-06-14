@@ -1,9 +1,13 @@
+import { BattlePiece } from "./Room";
+import { ISkill, ISkillLevel } from "./Skill";
 
 export interface IEntity 
 {
     id:string;
     name:string;
     level:number;
+    skills:ISkill[];
+    turnCount:number;
     state:EntityState;
 }
 
@@ -27,7 +31,10 @@ export default class Entity implements IEntity
     }
     name:string; 
     level:number;
+    skills: ISkill[] = [];
+    turnCount: number = 0;
 
     state:EntityState = EntityState.Idle;
     
+   
 }
