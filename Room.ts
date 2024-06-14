@@ -106,8 +106,6 @@ export interface IRoomBattle extends IRoomStrong<MapBattle>
     isPlayerReady: (player:Player) => boolean;
     start: (player:Player) => void;
 
-    onMessage: (player:Player, msgId:string, ...args:any[]) => void;
-
     getPiece: (groupIndex:number, index:number) => BattlePiece|null;
     getPieceByEntity: (entity:Entity) => BattlePiece|null;
     countEntities: (groupIndex:number) => number;
