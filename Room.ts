@@ -16,6 +16,7 @@ export interface IRoom
     hasSpace: () => boolean;
     addPlayer: (player:Player) => void;
     broadcast: (msgId:string, ...values:string[]) => void;
+    onPlayerJoined: (player:Player) => void;
     onPlayerLeft: (player:Player) => void;
     onMessage: (player:Player, msgId:string, ...args:any[]) => void;
 }
@@ -52,6 +53,11 @@ export default class Room<TMap extends MapBase> implements IRoomStrong<TMap>
     broadcast (msgId:string, ...values:string[]) : void 
     {
         this.players.forEach (p => p.send (msgId, ...values));
+    }
+
+    onPlayerJoined (player:Player) : void 
+    {
+
     }
 
     onPlayerLeft (player:Player) : void 
@@ -189,6 +195,15 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
     broadcastToLobby (msgId:string, includeListeners:boolean, ...args:any[]) : void 
     {
         this.getLobbyPlayers (includeListeners).forEach (p => p.send (msgId, ...args));
+    }
+
+    override onPlayerJoined(player: Player): void {
+        this.broadcastToLobby ('SpawnLobbyPlayer', true, player.character.id, player.character.level);
+
+        this.getLobbyPlayers ().forEach (p => {
+            if (p !== player)
+                player.send ('SpawnLobbyPlayer', p.character.id, p.character.level);
+        })
     }
 
     override onPlayerLeft(player: Player): void {
