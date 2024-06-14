@@ -17,6 +17,7 @@ export interface IRoom
     addPlayer: (player:Player) => void;
     broadcast: (msgId:string, ...values:string[]) => void;
     onPlayerLeft: (player:Player) => void;
+    onMessage: (player:Player, msgId:string, ...args:any[]) => void;
 }
 
 export interface IRoomStrong<TMap extends MapBase> extends IRoom
@@ -57,6 +58,11 @@ export default class Room<TMap extends MapBase> implements IRoomStrong<TMap>
     {
         this.broadcast ('PlayerLeft', player.character.id);
     }
+
+    onMessage (player:Player, msgId:string, ...args:any[]) : void 
+    {
+
+    }
 }
 
 interface IBattlePiece 
@@ -91,6 +97,7 @@ export interface IRoomBattle extends IRoomStrong<MapBattle>
     getPieceByEntity: (entity:Entity) => BattlePiece|null;
     countEntities: (groupIndex:number) => number;
     isGameReady:  () => boolean;
+    isPlayerReady: (player:Player) => boolean;
     choosePosition: (player:Player, groupIndex:number, index:number) => void;
     generatePositions: (groupIndex:number) => void;
     fillGroupAndGeneratePositions: (groupIndex:number) => void;
@@ -243,6 +250,11 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
     {
         return this.countEntities (0) >=  1 && this.countEntities(1) >= 1;
     }
+
+    isPlayerReady (player: Player) : boolean
+    {
+        return this.getPieceByEntity (player.character) !== null;
+    }
     
     
     choosePosition (player:Player, groupIndex:number, index:number) : void
@@ -365,7 +377,7 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
             if (!this.isGameReady ())
                 return;
 
-            if (this.getPieceByEntity (player.character) === null)
+            if (!!this.isPlayerReady (player))
                 return;
 
 
@@ -486,6 +498,22 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
         },30000);
     }
 
+
+    onMessage(player: Player, msgId: string, ...args: any[]): void {
+        switch (msgId)
+        {
+            case "Start":
+                if (!this.isPlayerReady (player))
+                    return;
+            
+                player.send ('Start', this.map.id, this.id);
+                break;
+
+            case "EnteredMap":
+                this.onEnteredMap (player);
+            break;
+        }
+    }
     
 }
 
