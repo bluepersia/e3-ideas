@@ -213,13 +213,13 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
             this.skipTurn ();
         
 
-       this.removeEntity (player.character);
+       this.removeEntityFromBoard (player.character);
 
         super.onPlayerLeft(player);
     }
   
 
-    removeEntity (entity:Entity) : void 
+    removeEntityFromBoard (entity:Entity) : void 
     {
         for (let i = 0; i < 2; i++)
             {
@@ -288,7 +288,7 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
 
         if  (!piece.entity)
             {
-                this.removeEntity (player.character);
+                this.removeEntityFromBoard (player.character);
                 piece.entity = player.character;
             }
         else  if (piece.entity === player.character)
