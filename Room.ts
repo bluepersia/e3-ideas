@@ -99,6 +99,7 @@ export interface IRoomBattle extends IRoomStrong<MapBattle>
     stopListeningLobby: (player:Player) => void;
     getLobbyPlayers: () => Player[];
     broadcastToLobby: (msgId:string, includeListeners:boolean, ...args:any[]) => void;
+    
     removeEntityFromBoard: (entity:Entity) => void;
     choosePosition: (player:Player, groupIndex:number, index:number) => void;
     isGameReady:  () => boolean;
