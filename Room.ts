@@ -213,23 +213,29 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
             this.skipTurn ();
         
 
-        for (let i = 0; i < 2; i++)
-        {
-            const group = this.board[i];
-            for (let j = 0; j < group.length; j++)
-            {
-                const piece = group[j];
-                if (piece.entity === player.character)
-                {
-                    piece.entity = null;
-                    this.broadcastToLobby ('SetLobbyPosition', true, i, j, '', false);
-                }
-            }
-        }
+       this.removeEntity (player.character);
 
         super.onPlayerLeft(player);
     }
   
+
+    removeEntity (entity:Entity) : void 
+    {
+        for (let i = 0; i < 2; i++)
+            {
+                const group = this.board[i];
+
+                for (let j = 0; j < group.length; j++)
+                {
+                    const groupPiece = group[j];
+                    if (groupPiece.entity === entity)
+                    {
+                        groupPiece.entity = null;
+                        this.broadcastToLobby ('SetLobbyPosition', true, i, j, '',  false);
+                    }
+                }
+            }
+    }
 
 
     getPiece (groupIndex:number, index:number) : BattlePiece | null
@@ -272,6 +278,7 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
     }
     
     
+    
     choosePosition (player:Player, groupIndex:number, index:number) : void
     {
         const piece = this.getPiece (groupIndex, index);
@@ -280,7 +287,10 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
             return;
 
         if  (!piece.entity)
-            piece.entity = player.character;
+            {
+                this.removeEntity (player.character);
+                piece.entity = player.character;
+            }
         else  if (piece.entity === player.character)
                 piece.entity = null;
         else 
