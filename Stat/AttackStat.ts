@@ -1,6 +1,6 @@
 import PlayerStat from "./PlayerStat";
 
-export default class Attacktat extends PlayerStat 
+export default class AttackStat extends PlayerStat 
 {
 
     
