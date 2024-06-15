@@ -1,5 +1,4 @@
 import Asset, { IAsset } from "./Asset";
-import { IDuplicatable } from "./Duplicatable";
 import { IEntity } from "./Entity";
 
 
