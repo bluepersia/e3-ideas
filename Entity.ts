@@ -79,7 +79,7 @@ export default class Entity implements IEntity
                 return 'Target must be an ally';
 
         const currentLevel = action.getCurrentLevel ();
-        const piece = room.getPieceByEntity (this)!;
+        const piece = room.getPiece (indexes[0], indexes[1]);
 
         if (!currentLevel.isReady (piece.turnCount))
             return 'On cooldown';
