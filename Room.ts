@@ -389,12 +389,15 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
 
     startTurn () : void 
     {
+        const entity = this.getCurrentTurnEntity ();
+        entity.onTurn (this);
+      
         const stamp = this.turnStamp = Date.now ();
-        this.broadcast ('SetTurn', this.getCurrentTurnEntity ().id);
+        this.broadcast ('SetTurn', entity.id);
         
         setTimeout (() =>
         {
-            if (this.turnStamp === stamp && this.getCurrentTurnEntity ().state === EntityState.Idle)
+            if (this.turnStamp === stamp && entity.state === EntityState.Idle)
                 this.nextTurn ();
         },30000);
     }

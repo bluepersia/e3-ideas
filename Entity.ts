@@ -11,6 +11,7 @@ export interface IEntity
     skills:ISkill[];
     state:EntityState;
 
+    onTurn: (room:IRoomBattle) => void;
     action: (room:IRoomBattle, action:ISkill, targetGroupIndex:number, targetIndex:number) => string;
 }
 
@@ -38,6 +39,11 @@ export default class Entity implements IEntity
 
     state:EntityState = EntityState.Idle;
     
+
+    onTurn (room:IRoomBattle) : void 
+    {
+
+    }
     
 
     action (room:IRoomBattle, action:ISkill, targetGroupIndex:number, targetIndex:number) : string
@@ -77,12 +83,15 @@ export default class Entity implements IEntity
         if (durationToEnemy < 0)
             durationToEnemy = 0;
 
+        this.state = EntityState.Action;
+
         setTimeout (() => 
             {
                 currentLevel.use ();
 
                 setTimeout (() => {
                     
+                    this.state = EntityState.Idle;
                     piece.turnCount++;
                     room.nextTurn ();
 
