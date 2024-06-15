@@ -122,6 +122,7 @@ export interface IRoomBattle extends IRoomStrong<MapBattle>
     getPieceByEntity: (entity:IEntity) => BattlePiece|null;
     getIndexesForEntity: (entity:Entity) => [number, number];
     countEntities: (groupIndex:number) => number;
+    countEntitiesAlive: (groupIndex:number) => number;
     generatePositions: (groupIndex:number) => void;
     fillGroupAndGeneratePositions: (groupIndex:number) => void;
     generateBoard: () => void;
@@ -408,14 +409,21 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
     {
         if (this.map instanceof MapPvE)
         {
-            if (this.countEntities (1) <= 0)
-                this.nextWave ();
+            if (this.countEntitiesAlive (1) <= 0)
+                {
+                    this.nextWave ();
+                    return;
+                }
         }
         else 
         {
-            if (this.countEntities(0) <= 0 || this.countEntities(1) <= 0)
-                this.endGame ();
+            if (this.countEntitiesAlive(0) <= 0 || this.countEntitiesAlive(1) <= 0)
+                {
+                    this.endGame ();
+                    return;
+                }
         }
+        this.nextTurn ();
     }
   
     
@@ -483,6 +491,10 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
     countEntities (groupIndex):number 
     {
         return this.board[groupIndex].reduce ((prev, curr) => curr.entity === null ? prev : prev + 1, 0);
+    }
+
+    countEntitiesAlive (groupIndex: number) : number{
+        return this.board[groupIndex].reduce ((prev, curr) => curr.entity?.isAlive ? prev + 1 : prev, 0);
     }
 
     
@@ -564,7 +576,12 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
             this.fillGroupAndGeneratePositions (1);
             this.generatePositions (0);
             for (let i = 0; i < this.board[0].length; i++)
-                this.broadcastToActivePlayers ('SetPosition', 0, i, this.board[0][i].position.join('_'));
+                {
+                    const piece = this.board[0][i];
+                    if (!piece.entity)
+                        continue;
+                    this.broadcastToActivePlayers ('SetPosition', piece.entity.id, piece.position.join('_'));
+                }
 
             this.spawnWave ();
             setTimeout (this.nextTurn, 5000);

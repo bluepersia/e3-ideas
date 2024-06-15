@@ -17,6 +17,7 @@ export interface IEntity
     health:IActiveStat;
     mana:IActiveStat;
     state:EntityState;
+    isAlive:boolean;
 
     onTurn: (room:IRoomBattle) => void;
     action: (room:IRoomBattle, action:ISkill, targetGroupIndex:number, targetIndex:number) => string;
@@ -51,6 +52,11 @@ export default class Entity implements IEntity
     mana:ActiveManaStat = new ActiveManaStat (this);
 
     state:EntityState = EntityState.Idle;
+
+    get isAlive () : boolean
+    {
+        return this.health.current > 0;
+    }
 
     constructor ()
     {
