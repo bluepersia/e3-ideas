@@ -35,10 +35,8 @@ export default class Inventory implements IInventory
         let counter = 0;
         for (const inventoryItem of this._items)
         {
-            //If slot is empty, space here is equal to the max quantity of the itme
             if (inventoryItem === null)
                 counter += item.quantityMax;
-            //If they are the same item, space here is what is left on the item
             else if (inventoryItem.id === item.id)
                 counter += inventoryItem.spaceLeft;
         }
