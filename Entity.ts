@@ -84,6 +84,9 @@ export default class Entity implements IEntity
         if (!currentLevel.isReady (piece.turnCount))
             return 'On cooldown';
 
+        if (currentLevel.manaCost > piece.entity!.mana.current)
+            return 'Not enough mana';
+
 
         let targets = [room.board[targetGroupIndex][targetIndex]];
 
