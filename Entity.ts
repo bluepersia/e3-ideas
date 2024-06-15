@@ -6,6 +6,10 @@ import Stat, { IStat } from "./Stat/Stat";
 import ActiveHealthStat from "./ActiveStat/HealthStat";
 import ActiveManaStat from "./ActiveStat/ManaStat";
 import { IActiveStat } from "./ActiveStat/ActiveStat";
+import { IList } from "./List";
+import Inventory from "./Inventory";
+import Equipment from "./Equipment";
+import Loot from "./Loot";
 
 export interface IEntity 
 {
@@ -16,6 +20,7 @@ export interface IEntity
     stats: Map<string, IStat>;
     health:IActiveStat;
     mana:IActiveStat;
+    lists:Map<string, IList>;
     state:EntityState;
     isAlive:boolean;
 
@@ -50,6 +55,12 @@ export default class Entity implements IEntity
 
     health:ActiveHealthStat = new ActiveHealthStat (this);
     mana:ActiveManaStat = new ActiveManaStat (this);
+
+    lists:Map<string, IList> = new Map<string, IList> ([
+        ['inventory', new Inventory (this)],
+        ['equipment', new Equipment (this)],
+        ['loot', new Loot (this)]
+    ])
 
     state:EntityState = EntityState.Idle;
 

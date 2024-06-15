@@ -1,5 +1,5 @@
-import Asset, { IAsset } from "./Asset";
-import { ICloneable } from "./Cloneable";
+import Asset, { IAsset } from "../Asset";
+import { ICloneable } from "../Cloneable";
 
 
 export interface IItem extends IAsset, ICloneable<IItem>
