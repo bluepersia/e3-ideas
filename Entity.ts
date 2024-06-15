@@ -84,7 +84,7 @@ export default class Entity implements IEntity
         if (!currentLevel.isReady (piece.turnCount))
             return 'On cooldown';
 
-        if (currentLevel.manaCost > piece.entity!.mana.current)
+        if (currentLevel.manaCost > this.mana.current)
             return 'Not enough mana';
 
 
@@ -96,7 +96,7 @@ export default class Entity implements IEntity
 
         const effects = currentLevel.calculate (this, targets.map (t => t.entity!));
 
-        room.broadcastToActivePlayers ('Action', action.id, targets[0].entity!.id, action.duration, JSON.stringify (effects));
+        room.broadcastToActivePlayers ('Action', this.id, action.id, targets[0].entity!.id, action.range, action.duration, JSON.stringify (effects));
         
 
         let durationToEnemy = (((Math.abs (targets[0].position[0] - piece.position[0]) - action.range) * 1.5) + action.duration) ;
