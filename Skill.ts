@@ -91,7 +91,8 @@ export class SkillLevel implements ISkillLevel
 
     use () : void 
     {
-        
+        this.effects.forEach (eff => eff.use ());
+        this.lastCast = Date.now ();
     }
 
 }
