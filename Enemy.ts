@@ -1,4 +1,5 @@
-import { IEnemyAsset } from "./EnemyAsset";
+import AssetLibrary from "./AssetLibrary";
+import { IDropData, IEnemyAsset } from "./EnemyAsset";
 import Entity, { IEntity } from "./Entity";
 import { IRoomBattle } from "./Room";
 import { TargetType } from "./Skill";
@@ -6,23 +7,28 @@ import { TargetType } from "./Skill";
 
 export interface IEnemy extends IEntity
 {
-    Import:(asset:IEnemyAsset) => void;
+    drops:IDropData[];
+
+    import:(asset:IEnemyAsset) => void;
+    drop: (target:IEntity) => void;
 }
 
 export default class Enemy extends Entity
 {
+    drops:IDropData[] = [];
 
-    
     constructor (asset:IEnemyAsset) 
     {
         super ();
 
-        this.Import (asset);
+        this.import (asset);
     }
 
-    Import (asset:IEnemyAsset) : void 
+    import (asset:IEnemyAsset) : void 
     {
-        
+        this.name = asset.id;
+        this.level = asset.level;
+        this.drops = asset.drops;
     }
 
     override onTurn(room: IRoomBattle): void {
@@ -47,4 +53,19 @@ export default class Enemy extends Entity
 
         this.action (room, skillRnd, targetGroupIndex, targetRnd);
     }
+
+
+    drop (target:IEntity) : void 
+    {
+        const items = this.drops.map (drop => drop.getResult ()).filter (drop => drop !== null).map (drop => {
+            const item = AssetLibrary.getItemById (drop!.id);
+            item!.quantity = drop!.quantity;
+            return item;
+        });
+
+        for (const item of items)
+            target.lists.get ('loot')!.addItem (item!);
+
+    }
+
 }
