@@ -116,6 +116,8 @@ export class SkillEffect implements ISkillEffect
     calculatedData:Map<IEntity, number> = new Map<IEntity, number>;
 
     calculate(entity: IEntity, targets: IEntity[]): ISkillEffectData[]{
+        this.calculatedData.clear ();
+        
         return targets.map (t => new SkillEffectData (this.time, t.id, 'NaN', this.value));
     }
     use () : void 
@@ -127,6 +129,8 @@ export class DealDamage extends SkillEffect
 {
 
     override calculate(entity: IEntity, targets: IEntity[]): ISkillEffectData[] {
+       super.calculate (entity, targets);
+
         return targets.map (t => 
             {
                 const dmgRange = (Math.random () * 0.2 ) - 0.1;
