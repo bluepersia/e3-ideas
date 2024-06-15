@@ -116,6 +116,7 @@ export interface IRoomBattle extends IRoomStrong<MapBattle>
     nextTurn: () => void;
     skipTurn: () => void;
     startTurn: () => void;
+    endTurn:() => void;
 
     getPiece: (groupIndex:number, index:number) => BattlePiece|null;
     getPieceByEntity: (entity:IEntity) => BattlePiece|null;
@@ -403,6 +404,19 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
     }
 
 
+    endTurn () : void 
+    {
+        if (this.map instanceof MapPvE)
+        {
+            if (this.countEntities (1) <= 0)
+                this.nextWave ();
+        }
+        else 
+        {
+            if (this.countEntities(0) <= 0 || this.countEntities(1) <= 0)
+                this.endGame ();
+        }
+    }
   
     
 
@@ -553,6 +567,7 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
                 this.broadcastToActivePlayers ('SetPosition', 0, i, this.board[0][i].position.join('_'));
 
             this.spawnWave ();
+            setTimeout (this.nextTurn, 5000);
 
             return;
         }

@@ -79,7 +79,7 @@ export default class Entity implements IEntity
         room.broadcastToActivePlayers ('Action', action.id, targets[0].entity!.id, action.duration, JSON.stringify (effects));
         
 
-        let durationToEnemy = Math.abs (targets[0].position[0] - piece.position[0]) - action.range;
+        let durationToEnemy = (((Math.abs (targets[0].position[0] - piece.position[0]) - action.range) * 1.5) + action.duration) ;
         if (durationToEnemy < 0)
             durationToEnemy = 0;
 
@@ -89,12 +89,9 @@ export default class Entity implements IEntity
             {
                 currentLevel.use ();
 
-                setTimeout (() => {
-                    
+                setTimeout (() => { 
                     this.state = EntityState.Idle;
-                    piece.turnCount++;
-                    room.nextTurn ();
-
+                    room.endTurn(); 
                 }, durationToEnemy);
             }, durationToEnemy + action.duration);
 
