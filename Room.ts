@@ -132,7 +132,8 @@ export interface IRoomBattle extends IRoomStrong<MapBattle>
     getActivePlayers: () => Player[];
     getCurrentTurnEntity: () => Entity;
     broadcastToActivePlayers: (msgId:string, ...args:any[]) => void;
-
+    addListenersToEntity: (entity:IEntity) => void;
+    removeListenersFromEntity: (entity:IEntity) => void;
 }
 
 export class RoomBattle extends Room<MapBattle> implements IRoomBattle
@@ -224,7 +225,7 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
         if (this.getCurrentTurnEntity () === player.character)
             this.skipTurn ();
         
-
+        
        this.removeEntityFromBoard (player.character);
 
         super.onPlayerLeft(player);
@@ -245,6 +246,7 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
                         groupPiece.entity = null;
                         groupPiece.turnCount = 0;
                         this.broadcastToLobby ('RemoveLobbyPosition', true, i, j);
+                        this.removeListenersFromEntity (entity);
                     }
                 }
             }
@@ -322,6 +324,8 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
 
         this.broadcastToLobby ('SetLobbyActive', true, player.character.id);
         this.broadcast ('SpawnEntity', ...this.getSpawnData (player.character));
+
+        this.addListenersToEntity (player.character);
     }
     spawnGroupForPlayer (player:Player, group:BattlePiece[]) : void 
     {
@@ -554,6 +558,7 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
                     el.entity = enemies[index]; 
                     el.entity.id = this.waveIndex+ '-' + index;
                     el.isActive = true;
+                    this.addListenersToEntity (el.entity);
                 });
 
                 this.getActivePlayers ().forEach (p =>this.spawnGroupForPlayer (p, this.board[1]));
@@ -628,7 +633,18 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
         return this.board[this.turnGroup][this.turn[this.turnGroup]].entity!;
     }
 
-    
+    addListenersToEntity (entity: IEntity) : void 
+    {
+        //Send health to client when it changes
+        entity.health.onCurrentChangeEvent.push (() => this.broadcastToActivePlayers ('Health', entity.id, entity.health.current));
+        entity.health.onMaxChangeEvent.push (() => this.broadcastToActivePlayers ('HealthMax', entity.id, entity.health.max));
+    }
+
+    removeListenersFromEntity (entity:IEntity) : void
+    {
+        entity.health.onMaxChangeEvent = [];
+        entity.health.onCurrentChangeEvent = [];
+    }
 
 
     

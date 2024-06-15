@@ -4,6 +4,8 @@ export interface IActiveStat
 {
     current:number;
     max:number;
+    onCurrentChangeEvent:((activeStat:IActiveStat) => void)[];
+    onMaxChangeEvent:((activeStat:IActiveStat) => void)[];
 
     initialize: () => void;
 }
