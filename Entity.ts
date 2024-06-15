@@ -2,6 +2,10 @@ import { BattlePiece } from "./Room";
 import { ISkill, ISkillLevel, TargetType } from "./Skill";
 import { IRoomBattle } from "./Room";
 import Player from "./Player";
+import Stat, { IStat } from "./Stat/Stat";
+import ActiveHealthStat from "./ActiveStat/HealthStat";
+import ActiveManaStat from "./ActiveStat/ManaStat";
+import { IActiveStat } from "./ActiveStat/ActiveStat";
 
 export interface IEntity 
 {
@@ -9,6 +13,9 @@ export interface IEntity
     name:string;
     level:number;
     skills:ISkill[];
+    stats: Map<string, IStat>;
+    health:IActiveStat;
+    mana:IActiveStat;
     state:EntityState;
 
     onTurn: (room:IRoomBattle) => void;
@@ -36,8 +43,18 @@ export default class Entity implements IEntity
     name:string; 
     level:number;
     skills: ISkill[] = [];
+    stats:Map<string, IStat> = new Map<string, IStat> ();
+
+    health:ActiveHealthStat = new ActiveHealthStat (this);
+    mana:ActiveManaStat = new ActiveManaStat (this);
 
     state:EntityState = EntityState.Idle;
+
+    constructor ()
+    {
+        this.health.initialize ();
+        this.mana.initialize ();
+    }
     
 
     onTurn (room:IRoomBattle) : void 

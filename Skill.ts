@@ -1,8 +1,9 @@
 import Asset, { IAsset } from "./Asset";
+import { IDuplicatable } from "./Duplicatable";
 import { IEntity } from "./Entity";
 
 
-export interface ISkill extends IAsset
+export interface ISkill extends IAsset, IDuplicatable<ISkill>
 {
     targetType:TargetType;
     levels: ISkillLevel[];
@@ -21,7 +22,7 @@ export enum TargetType
     Self
 }
 
-export default class Skill extends Asset implements ISkill
+export default class Skill extends Asset implements ISkill, IDuplicatable<ISkill>
 {
     targetType:TargetType = TargetType.Opponent;
     levels:ISkillLevel[] = [];
@@ -34,9 +35,21 @@ export default class Skill extends Asset implements ISkill
     {
         return this.levels[this.levelCurrent];
     }
+
+    duplicate () : ISkill
+    {
+        const newSkill = new Skill ();
+        newSkill.targetType = this.targetType;
+        newSkill.levels = this.levels.map (l => l.duplicate ());
+        newSkill.levelCurrent = this.levelCurrent;
+        newSkill.range = this.range;
+        newSkill.duration = this.duration;
+        newSkill.isAoE = this.isAoE;
+        return newSkill;
+    }
 }
 
-export interface ISkillLevel 
+export interface ISkillLevel extends IDuplicatable<ISkillLevel>
 {
     manaCost:number;
     cooldown:number;
@@ -72,12 +85,13 @@ export class SkillEffectData implements ISkillEffectData
 
 }
 
-export class SkillLevel implements ISkillLevel
+export class SkillLevel implements ISkillLevel, IDuplicatable<ISkillLevel>
 {
     manaCost: number = 0;
     cooldown: number = 1;
     lastCast: number = -1;
     effects: ISkillEffect[] = [];
+    private caster:IEntity;
 
     isReady (turnCount:number) : boolean
     {
@@ -93,12 +107,22 @@ export class SkillLevel implements ISkillLevel
     {
         this.effects.forEach (eff => eff.use ());
         this.lastCast = Date.now ();
+        this.caster.mana.current -= this.manaCost;
     }
 
+    duplicate () : ISkillLevel
+    {
+        const newLevel = new SkillLevel ();
+        newLevel.manaCost = this.manaCost;
+        newLevel.cooldown = this.cooldown;
+        newLevel.lastCast = this.lastCast;
+        newLevel.effects = this.effects;
+        return newLevel;
+    }
 }
 
 
-export interface ISkillEffect
+export interface ISkillEffect 
 {
     value:number;    
     calculatedData:Map<IEntity, number>;
@@ -117,7 +141,7 @@ export class SkillEffect implements ISkillEffect
 
     calculate(entity: IEntity, targets: IEntity[]): ISkillEffectData[]{
         this.calculatedData.clear ();
-        
+
         return targets.map (t => new SkillEffectData (this.time, t.id, 'NaN', this.value));
     }
     use () : void 
@@ -149,7 +173,6 @@ export class DealDamage extends SkillEffect
 
     use () : void
     {
-
-            //Take away health
+        this.calculatedData.forEach ((dmg, entity) => entity.health.current -= dmg);
     }
 }
