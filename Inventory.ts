@@ -9,6 +9,7 @@ export interface IInventory
     countSpaceFor: (item:IItem) => number;
     addItem: (item:IItem) => number;
     countItem: (item:IItem) => number;
+    setItem: (index:number, item:IItem) => number;
 }
 
 
@@ -45,10 +46,7 @@ export default class Inventory implements IInventory
         return counter;
     }
 
-    private setItem (index:number, item:IItem) : void 
-    {
-        this._items[index] = item;
-    }
+  
 
     addItem (item:IItem) : number 
     {
@@ -56,24 +54,10 @@ export default class Inventory implements IInventory
 
         for (let i = 0; i < this._items.length; i++)
         {
-            const inventoryItem = this._items[i];
+            count += this.setItem (i, item);
 
-            if (inventoryItem === null)
-            {
-                const clone = item.clone ();
-                if (clone.quantity > clone.quantityMax)
-                    clone.quantity = clone.quantityMax;
-                
-                this.setItem (i, clone);
-                count += clone.quantity;
-                item.quantity -= clone.quantity;
-            }
-            else if (inventoryItem.id === item.id)
-            {
-                const added = inventoryItem.addToStack (item.quantity);
-                item.quantity -= added;
-                count += added;
-            }
+            if (item.quantity <= 0)
+                break;
         }
         return count;
     }
@@ -82,5 +66,30 @@ export default class Inventory implements IInventory
     countItem (item:IItem) : number 
     {
         return this._items.reduce ((prev, curr) => curr?.id === item.id ? prev + curr.quantity : prev , 0);
+    }
+
+    setItem (index:number, item:IItem) : number 
+    {
+        const inventoryItem = this._items[index];
+        let count = 0;
+
+        if (inventoryItem === null)
+        {
+            const clone = item.clone ();
+            if (clone.quantity > clone.quantityMax)
+                 clone.quantity = clone.quantityMax;
+                
+            this._items[index] = clone;
+            count += clone.quantity;
+            item.quantity -= clone.quantity;
+        }
+         else if (inventoryItem.id === item.id)
+        {
+            const added = inventoryItem.addToStack (item.quantity);
+            item.quantity -= added;
+            count += added;
+        }
+
+        return count;
     }
 }
