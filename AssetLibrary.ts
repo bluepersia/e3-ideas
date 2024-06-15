@@ -22,9 +22,9 @@ export default class AssetLibrary
     public static getSkillById (id:string) : ISkill | null 
     {
         const skill = this.skills.find (s => s.id === id);
-        
+
         if (skill)
-            return skill.duplicate ();
+            return skill.clone ();
 
         return null;
     }

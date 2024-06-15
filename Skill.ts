@@ -1,8 +1,9 @@
 import Asset, { IAsset } from "./Asset";
+import { ICloneable } from "./Cloneable";
 import { IEntity } from "./Entity";
 
 
-export interface ISkill extends IAsset
+export interface ISkill extends IAsset, ICloneable<ISkill>
 {
     targetType:TargetType;
     levels: ISkillLevel[];
@@ -12,7 +13,6 @@ export interface ISkill extends IAsset
     isAoE:boolean;
 
     getCurrentLevel: () => ISkillLevel;
-    duplicate: () => ISkill;
 }
 
 export enum TargetType
@@ -36,22 +36,16 @@ export default class Skill extends Asset implements ISkill
         return this.levels[this.levelCurrent];
     }
 
-    duplicate () : ISkill
+    clone () : ISkill
     {
-        const newSkill = new Skill ();
-        newSkill.targetType = this.targetType;
-        newSkill.levels = this.levels.map (l => l.duplicate());
-        newSkill.levelCurrent = this.levelCurrent;
-        newSkill.range = this.range;
-        newSkill.duration = this.duration;
-        newSkill.isAoE = this.isAoE;
-
+        const newSkill = Object.create (this) as ISkill;
+        newSkill.levels = this.levels.map (l => l.clone());
         return newSkill;
     }
    
 }
 
-export interface ISkillLevel 
+export interface ISkillLevel extends ICloneable<ISkillLevel>
 {
     manaCost:number;
     cooldown:number;
@@ -60,7 +54,6 @@ export interface ISkillLevel
     isReady: (entity:IEntity, turnCount:number) => boolean;
     use: () => void;
     calculate: (entity:IEntity, targets:IEntity[]) => ISkillEffectData[][]
-    duplicate: () => ISkillLevel;
 }
 
 export interface ISkillEffectData 
@@ -116,26 +109,23 @@ export class SkillLevel implements ISkillLevel
     }
 
 
-    duplicate () : ISkillLevel
+    clone () : ISkillLevel
     {
-        const newLvl = new SkillLevel ();
-        newLvl.manaCost = this.manaCost;
-        newLvl.cooldown = this.cooldown;
-        newLvl.effects = this.effects.map (eff => eff.duplicate ());
+        const newLvl = Object.create (this) as ISkillLevel;
+        newLvl.effects = this.effects.map (eff => eff.clone ());
         return newLvl;
     }
    
 }
 
-
-export interface ISkillEffect 
+ 
+export interface ISkillEffect extends ICloneable<ISkillEffect>
 {
     value:number;    
     calculatedData:Map<IEntity, number>;
 
     calculate:(entity:IEntity, targets:IEntity[]) => ISkillEffectData[];
     use: () => void;
-    duplicate: () => ISkillEffect;
 }
 
 export abstract class SkillEffect implements ISkillEffect 
@@ -155,16 +145,9 @@ export abstract class SkillEffect implements ISkillEffect
     {
     }
 
-    duplicate () : ISkillEffect 
+    clone () : ISkillEffect 
     {
-        let newEff;
-        if (this instanceof DealDamage)
-            newEff = new DealDamage ();
-
-        newEff.value = this.value;
-        newEff.time = this.time;
-
-        return newEff;
+        return Object.create (this) as ISkillEffect;
     }
 }
 
