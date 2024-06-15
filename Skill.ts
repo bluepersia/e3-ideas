@@ -3,7 +3,7 @@ import { IDuplicatable } from "./Duplicatable";
 import { IEntity } from "./Entity";
 
 
-export interface ISkill extends IAsset, IDuplicatable<ISkill>
+export interface ISkill extends IAsset
 {
     targetType:TargetType;
     levels: ISkillLevel[];
@@ -22,7 +22,7 @@ export enum TargetType
     Self
 }
 
-export default class Skill extends Asset implements ISkill, IDuplicatable<ISkill>
+export default class Skill extends Asset implements ISkill
 {
     targetType:TargetType = TargetType.Opponent;
     levels:ISkillLevel[] = [];
@@ -36,26 +36,16 @@ export default class Skill extends Asset implements ISkill, IDuplicatable<ISkill
         return this.levels[this.levelCurrent];
     }
 
-    duplicate () : ISkill
-    {
-        const newSkill = new Skill ();
-        newSkill.targetType = this.targetType;
-        newSkill.levels = this.levels.map (l => l.duplicate ());
-        newSkill.levelCurrent = this.levelCurrent;
-        newSkill.range = this.range;
-        newSkill.duration = this.duration;
-        newSkill.isAoE = this.isAoE;
-        return newSkill;
-    }
+   
 }
 
-export interface ISkillLevel extends IDuplicatable<ISkillLevel>
+export interface ISkillLevel 
 {
     manaCost:number;
     cooldown:number;
     effects:ISkillEffect[];
 
-    isReady: (turnCount:number) => boolean;
+    isReady: (entity:IEntity, turnCount:number) => boolean;
     use: () => void;
     calculate: (entity:IEntity, targets:IEntity[]) => ISkillEffectData[][]
 }
@@ -85,17 +75,19 @@ export class SkillEffectData implements ISkillEffectData
 
 }
 
-export class SkillLevel implements ISkillLevel, IDuplicatable<ISkillLevel>
+export class SkillLevel implements ISkillLevel
 {
     manaCost: number = 0;
     cooldown: number = 1;
-    lastCast: number = -1;
     effects: ISkillEffect[] = [];
+    private lastCast:Map<IEntity, number> = new Map<IEntity, number>();
     private caster:IEntity;
+    private turnCount:number;
 
-    isReady (turnCount:number) : boolean
+    isReady (entity:IEntity, turnCount:number) : boolean
     {
-        return this.lastCast === -1 || turnCount - this.lastCast >= this.cooldown;
+        this.turnCount = turnCount;
+        return !this.lastCast.has (entity) || turnCount - this.lastCast.get(entity)!>= this.cooldown;
     }
 
     calculate (entity:IEntity, targets:IEntity[]) : SkillEffectData[][]
@@ -106,19 +98,11 @@ export class SkillLevel implements ISkillLevel, IDuplicatable<ISkillLevel>
     use () : void 
     {
         this.effects.forEach (eff => eff.use ());
-        this.lastCast = Date.now ();
+        this.lastCast.set (this.caster, this.turnCount);
         this.caster.mana.current -= this.manaCost;
     }
 
-    duplicate () : ISkillLevel
-    {
-        const newLevel = new SkillLevel ();
-        newLevel.manaCost = this.manaCost;
-        newLevel.cooldown = this.cooldown;
-        newLevel.lastCast = this.lastCast;
-        newLevel.effects = this.effects;
-        return newLevel;
-    }
+   
 }
 
 
