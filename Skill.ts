@@ -12,6 +12,7 @@ export interface ISkill extends IAsset
     isAoE:boolean;
 
     getCurrentLevel: () => ISkillLevel;
+    duplicate: () => ISkill;
 }
 
 export enum TargetType
@@ -35,6 +36,18 @@ export default class Skill extends Asset implements ISkill
         return this.levels[this.levelCurrent];
     }
 
+    duplicate () : ISkill
+    {
+        const newSkill = new Skill ();
+        newSkill.targetType = this.targetType;
+        newSkill.levels = this.levels.map (l => l.duplicate());
+        newSkill.levelCurrent = this.levelCurrent;
+        newSkill.range = this.range;
+        newSkill.duration = this.duration;
+        newSkill.isAoE = this.isAoE;
+
+        return newSkill;
+    }
    
 }
 
@@ -47,6 +60,7 @@ export interface ISkillLevel
     isReady: (entity:IEntity, turnCount:number) => boolean;
     use: () => void;
     calculate: (entity:IEntity, targets:IEntity[]) => ISkillEffectData[][]
+    duplicate: () => ISkillLevel;
 }
 
 export interface ISkillEffectData 
@@ -79,14 +93,14 @@ export class SkillLevel implements ISkillLevel
     manaCost: number = 0;
     cooldown: number = 1;
     effects: ISkillEffect[] = [];
-    private lastCast:Map<IEntity, number> = new Map<IEntity, number>();
+    private lastCast:number = -1;
     private caster:IEntity;
     private turnCount:number;
 
     isReady (entity:IEntity, turnCount:number) : boolean
     {
         this.turnCount = turnCount;
-        return !this.lastCast.has (entity) || turnCount - this.lastCast.get(entity)!>= this.cooldown;
+        return this.lastCast == -1 || turnCount - this.lastCast!>= this.cooldown;
     }
 
     calculate (entity:IEntity, targets:IEntity[]) : SkillEffectData[][]
@@ -97,10 +111,19 @@ export class SkillLevel implements ISkillLevel
     use () : void 
     {
         this.effects.forEach (eff => eff.use ());
-        this.lastCast.set (this.caster, this.turnCount);
+        this.lastCast = this.turnCount;
         this.caster.mana.current -= this.manaCost;
     }
 
+
+    duplicate () : ISkillLevel
+    {
+        const newLvl = new SkillLevel ();
+        newLvl.manaCost = this.manaCost;
+        newLvl.cooldown = this.cooldown;
+        newLvl.effects = this.effects.map (eff => eff.duplicate ());
+        return newLvl;
+    }
    
 }
 
@@ -112,9 +135,10 @@ export interface ISkillEffect
 
     calculate:(entity:IEntity, targets:IEntity[]) => ISkillEffectData[];
     use: () => void;
+    duplicate: () => ISkillEffect;
 }
 
-export class SkillEffect implements ISkillEffect 
+export abstract class SkillEffect implements ISkillEffect 
 {
     value: number = 0;
     time:number = 0;
@@ -129,6 +153,18 @@ export class SkillEffect implements ISkillEffect
     }
     use () : void 
     {
+    }
+
+    duplicate () : ISkillEffect 
+    {
+        let newEff;
+        if (this instanceof DealDamage)
+            newEff = new DealDamage ();
+
+        newEff.value = this.value;
+        newEff.time = this.time;
+
+        return newEff;
     }
 }
 

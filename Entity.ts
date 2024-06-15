@@ -28,6 +28,8 @@ export enum EntityState
     Action,
     RunningToNextWave
 }
+
+
 export default class Entity implements IEntity
 {
     private _id:string;
