@@ -1,9 +1,8 @@
 import Entity, { EntityState, IEntity } from "./Entity";
 import Enemy from "./Enemy";
-import MapBase, { MapBattle, MapPVP, MapPvE } from "./Map";
+import MapBase, { IMap, IMapTown, MapBattle, MapPVP, MapPvE } from "./Map";
 import Player from "./Player";
 import AssetLibrary from "./AssetLibrary";
-import { ISkill, TargetType } from "./Skill";
 
 const SCREEN_WIDTH = 900;
 
@@ -22,12 +21,12 @@ export interface IRoom
     onMessage: (player:Player, msgId:string, ...args:any[]) => void;
 }
 
-export interface IRoomStrong<TMap extends MapBase> extends IRoom
+export interface IRoomStrong<TMap extends IMap> extends IRoom
 {
     map:TMap;
 }
 
-export default class Room<TMap extends MapBase> implements IRoomStrong<TMap>
+export default class Room<TMap extends IMap> implements IRoomStrong<TMap>
 {
     id:string;
     mapBase:MapBase;
@@ -51,14 +50,14 @@ export default class Room<TMap extends MapBase> implements IRoomStrong<TMap>
         this.players.push (player);
     }
 
-    broadcast (msgId:string, ...values:string[]) : void 
+    broadcast (msgId:string, ...values:any[]) : void 
     {
         this.players.forEach (p => p.send (msgId, ...values));
     }
 
     onPlayerJoined (player:Player) : void 
     {
-
+        
     }
 
     onPlayerLeft (player:Player) : void 
@@ -69,6 +68,27 @@ export default class Room<TMap extends MapBase> implements IRoomStrong<TMap>
     onMessage (player:Player, msgId:string, ...args:any[]) : void 
     {
 
+    }
+
+    onLevelChanged (entity:IEntity) : void 
+    {
+        this.broadcast ('Level', entity.id, entity.level);
+    }
+}
+
+interface IRoomTown extends IRoomStrong<IMapTown>
+{
+
+}
+
+export class RoomTown extends Room<IMapTown> implements IRoomTown
+{
+     override onPlayerJoined(player: Player): void {
+        player.character.onLevelChangedEvent.push (this.onLevelChanged);    
+    }
+
+    override onPlayerLeft(player: Player): void {
+        player.character.onLevelChangedEvent = [];
     }
 }
 
@@ -639,6 +659,8 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
         entity.health.onCurrentChangeEvent.push (() => this.broadcastToActivePlayers ('Health', entity.id, entity.health.current));
         entity.health.onMaxChangeEvent.push (() => this.broadcastToActivePlayers ('HealthMax', entity.id, entity.health.max));
 
+        entity.onLevelChangedEvent.push (this.onLevelChanged);
+
         if (entity instanceof Enemy)
             entity.health.onCurrentChangeEvent.push (activeStat =>
         {
@@ -651,6 +673,8 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
     {
         entity.health.onMaxChangeEvent = [];
         entity.health.onCurrentChangeEvent = [];
+
+        entity.onLevelChangedEvent = [];
     }
 
 

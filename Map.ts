@@ -27,6 +27,20 @@ export default class MapBase extends Asset implements IMap
     
 }
 
+export interface IMapTown extends IMap 
+{
+    maxPlayers:number;
+}
+
+export class MapTown extends MapBase implements IMapTown 
+{
+    maxPlayers: number = 40;
+
+     override getSpace(): number {
+        return this.maxPlayers;
+    }
+}
+
 export interface IMapBattle extends IMap
 {
     getSizeAt: (groupIndex:number, waveIndex:number) => number;

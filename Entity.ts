@@ -24,6 +24,8 @@ export interface IEntity
     state:EntityState;
     isAlive:boolean;
 
+    onLevelChangedEvent:((entity:IEntity) => void)[];
+
     onTurn: (room:IRoomBattle) => void;
     action: (room:IRoomBattle, action:ISkill, targetGroupIndex:number, targetIndex:number) => string;
 }
@@ -49,7 +51,20 @@ export default class Entity implements IEntity
         this._id = value;
     }
     name:string; 
-    level:number;
+    private _level:number;
+    public get level () : number 
+    {
+        return this._level;
+    }
+    public set level(value:number)
+    {
+        if (value === this._level)
+            return;
+
+        this._level = value;
+        this.onLevelChangedEvent.forEach (el => el (this));
+    }
+    onLevelChangedEvent: ((entity: IEntity) => void)[] = [];
     skills: ISkill[] = [];
     stats:Map<string, IStat> = new Map<string, IStat> ();
 
