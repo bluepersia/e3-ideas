@@ -8,6 +8,8 @@ export interface IItem extends IAsset, ICloneable<IItem>
     quantityMax:number; 
     spaceLeft:number;
 
+    onQuantityChangedEvent: (() => void)[];
+
     addToStack: (count:number) => number;
     getData: () => IItemData;
 }
@@ -26,8 +28,23 @@ export class ItemData implements IItemData
 
 export default class Item extends Asset implements IItem
 {
-    quantity:number = 1;
+    private _quantity:number = 1;
+    get quantity () : number 
+    {
+        return this._quantity;
+    }
+    set quantity (value:number) 
+    {
+        if (value === this._quantity)
+            return;
+
+        this._quantity = value;
+        this.onQuantityChangedEvent.forEach (el => el ());
+    }
     quantityMax:number = 1;
+
+    onQuantityChangedEvent: (() => void)[] = [];
+
     get spaceLeft () : number 
     {
         return this.quantityMax - this.quantity;

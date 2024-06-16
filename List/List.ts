@@ -65,6 +65,20 @@ export default class List implements IList
     {
         const prev = this._items[index];
         this._items[index] = item;
+
+        //Listen for quantity changes
+        if (item)
+            item.onQuantityChangedEvent = [() => {
+
+                if (item.quantity <= 0)
+                {
+                    this.setItem (index, null);
+                    return;
+                }
+
+                this.onItemSet (index, item, item);
+        }]
+
         this.onItemSet (index, prev, item);
     }
 
@@ -93,7 +107,6 @@ export default class List implements IList
             const added = inventoryItem.addToStack (item.quantity);
             item.quantity -= added;
             count += added;
-            this.innerSetItem (index, inventoryItem);
         }
 
         return count;
