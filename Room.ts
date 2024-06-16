@@ -19,6 +19,8 @@ export interface IRoom
     onPlayerJoined: (player:Player) => void;
     onPlayerLeft: (player:Player) => void;
     onMessage: (player:Player, msgId:string, ...args:any[]) => void;
+    addListenersToEntity: (entity:IEntity) => void;
+    removeListenersFromEntity: (entity:IEntity) => void;
 }
 
 export interface IRoomStrong<TMap extends IMap> extends IRoom
@@ -74,6 +76,19 @@ export default class Room<TMap extends IMap> implements IRoomStrong<TMap>
     {
         this.broadcast ('Level', entity.id, entity.level);
     }
+
+    addListenersToEntity (entity: IEntity) : void 
+    {
+        entity.onLevelChangedEvent.push (this.onLevelChanged);
+    }
+
+    removeListenersFromEntity (entity:IEntity) : void
+    {
+        entity.onLevelChangedEvent = [];
+    }
+
+
+    
 }
 
 interface IRoomTown extends IRoomStrong<IMapTown>
@@ -84,11 +99,11 @@ interface IRoomTown extends IRoomStrong<IMapTown>
 export class RoomTown extends Room<IMapTown> implements IRoomTown
 {
      override onPlayerJoined(player: Player): void {
-        player.character.onLevelChangedEvent.push (this.onLevelChanged);    
+        this.addListenersToEntity (player.character);
     }
 
     override onPlayerLeft(player: Player): void {
-        player.character.onLevelChangedEvent = [];
+       this.removeListenersFromEntity (player.character);
     }
 }
 
@@ -152,8 +167,7 @@ export interface IRoomBattle extends IRoomStrong<MapBattle>
     getActivePlayers: () => Player[];
     getCurrentTurnEntity: () => Entity;
     broadcastToActivePlayers: (msgId:string, ...args:any[]) => void;
-    addListenersToEntity: (entity:IEntity) => void;
-    removeListenersFromEntity: (entity:IEntity) => void;
+    
 }
 
 export class RoomBattle extends Room<MapBattle> implements IRoomBattle
@@ -655,6 +669,7 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
 
     addListenersToEntity (entity: IEntity) : void 
     {
+        super.addListenersToEntity (entity);
         //Send health to client when it changes
         entity.health.onCurrentChangeEvent.push (() => this.broadcastToActivePlayers ('Health', entity.id, entity.health.current));
         entity.health.onMaxChangeEvent.push (() => this.broadcastToActivePlayers ('HealthMax', entity.id, entity.health.max));
@@ -673,6 +688,8 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
 
     removeListenersFromEntity (entity:IEntity) : void
     {
+        super.removeListenersFromEntity (entity);
+        
         entity.health.onMaxChangeEvent = [];
         entity.health.onCurrentChangeEvent = [];
 
