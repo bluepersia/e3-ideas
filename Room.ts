@@ -662,11 +662,13 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
         entity.onLevelChangedEvent.push (this.onLevelChanged);
 
         if (entity instanceof Enemy)
-            entity.health.onCurrentChangeEvent.push (activeStat =>
         {
-            if (activeStat.current <= 0)
-                this.getActivePlayers ().forEach (player => entity.drop (player.character));
-        });
+            entity.health.onCurrentChangeEvent.push (activeStat =>
+            {
+                if (activeStat.current <= 0)
+                    this.getActivePlayers ().forEach (player => entity.drop (player.character));
+            });
+        }
     }
 
     removeListenersFromEntity (entity:IEntity) : void
