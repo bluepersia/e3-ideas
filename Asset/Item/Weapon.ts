@@ -11,6 +11,8 @@ export default class Weapon extends EquipItem
 {
     attack:number = 5;
 
+    equipIndexes = [0, 1];
+
     override equip(target: IEntity): void {
         target.stats.get ('attack')!.add += this.attack;
     }

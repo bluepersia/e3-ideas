@@ -11,6 +11,9 @@ export interface IEquipment extends IList
 
 export default class Equipment extends List implements IEquipment 
 {
+     override validate(item: IItem, index: number): boolean {
+        return (item as IEquipItem).validateEquip (this.parent, index);
+    }
     override onItemSet(index: number, prev: IItem | null, curr: IItem | null): void {
         
         if (prev === curr)
