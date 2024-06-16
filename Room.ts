@@ -3,6 +3,8 @@ import Enemy from "./Enemy";
 import MapBase, { IMap, IMapTown, MapBattle, MapPVP, MapPvE } from "./Map";
 import Player from "./Player";
 import AssetLibrary from "./Asset/AssetLibrary";
+import { IList } from "./List/List";
+import { ICharacter } from "./Character";
 
 const SCREEN_WIDTH = 900;
 
@@ -15,6 +17,7 @@ export interface IRoom
 
     hasSpace: () => boolean;
     addPlayer: (player:Player) => void;
+    getPlayerByEntity: (entity:ICharacter) => Player|null;
     broadcast: (msgId:string, ...values:string[]) => void;
     onPlayerJoined: (player:Player) => void;
     onPlayerLeft: (player:Player) => void;
@@ -52,6 +55,11 @@ export default class Room<TMap extends IMap> implements IRoomStrong<TMap>
         this.players.push (player);
     }
 
+    getPlayerByEntity (entity: ICharacter) : Player | null
+    {
+        return this.players.find (p => p.character === entity) || null;
+    }
+
     broadcast (msgId:string, ...values:any[]) : void 
     {
         this.players.forEach (p => p.send (msgId, ...values));
@@ -69,10 +77,56 @@ export default class Room<TMap extends IMap> implements IRoomStrong<TMap>
 
     onMessage (player:Player, msgId:string, ...args:any[]) : void 
     {
-
+        switch (msgId)
+        {
+            case "InventoryOpen":
+                this.onInventoryOpen (player);
+                break;
+            case "InventoryClose":
+                this.onInventoryClose (player);
+                break;
+            case "EquipmentOpen":
+                this.onEquipmentOpen (player);
+                break;
+            case "EquipmentClose":
+                this.onEquipmentClose (player);
+                break;
+        }
     }
 
-    onLevelChanged (entity:IEntity) : void 
+    protected onInventoryOpen (player:Player) : void 
+    {
+        player.character.inventory.onItemSetEvent.push (this.onInventoryChanged);
+    }
+
+    protected onInventoryClose (player:Player) : void 
+    {
+        player.character.inventory.onItemSetEvent = [];
+    }
+
+    private onInventoryChanged (target:IList, index:number) : void 
+    {
+        const data = target.items[index]?.getData() || null;
+        this.getPlayerByEntity (target.parent)?.send ('InventoryChanged', index, data ? JSON.stringify (data) : '')
+    }
+
+    protected onEquipmentClose (player:Player) : void 
+    {
+        player.character.equipment.onItemSetEvent = [];
+    }
+
+    protected onEquipmentOpen (player:Player) : void 
+    {
+        player.character.equipment.onItemSetEvent.push (this.onEquipmentChanged);
+    }
+
+    private onEquipmentChanged (target:IList, index:number) : void 
+    {
+        const data = target.items[index]?.getData() || null;
+        this.getPlayerByEntity (target.parent)?.send ('EquipmentChanged', index, data ? JSON.stringify (data) : '')
+    }
+
+    protected onLevelChanged (entity:IEntity) : void 
     {
         this.broadcast ('Level', entity.id, entity.level);
     }
@@ -689,7 +743,7 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
     removeListenersFromEntity (entity:IEntity) : void
     {
         super.removeListenersFromEntity (entity);
-        
+
         entity.health.onMaxChangeEvent = [];
         entity.health.onCurrentChangeEvent = [];
 

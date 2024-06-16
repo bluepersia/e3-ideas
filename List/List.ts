@@ -1,10 +1,13 @@
-import { IEntity } from "../Entity";
 import { IItem } from "../Asset/Item/Item";
+import { ICharacter } from "../Character";
 
 export interface IList
 {
     items:(IItem|null)[];
     maxCount:number;
+    parent:ICharacter;
+
+    onItemSetEvent: ((target:IList, index:number) => void)[];
 
     countItem: (item:IItem) => number;
     countSpaceFor: (item:IItem) => number;
@@ -20,7 +23,7 @@ export interface IList
 export default class List implements IList
 {
     protected _items:(IItem|null)[] = [];
-    protected parent:IEntity;
+    public parent:ICharacter;
 
     public get items() :(IItem|null)[]
     {
@@ -29,7 +32,9 @@ export default class List implements IList
 
     maxCount:number = 10;
 
-    constructor (parent:IEntity)
+    onItemSetEvent: ((target:IList, index: number) => void)[] = [];
+
+    constructor (parent:ICharacter)
     {
         this.parent = parent;
         
@@ -129,6 +134,6 @@ export default class List implements IList
 
     onItemSet (index: number, prev: IItem | null, curr: IItem | null) : void
     {
-
+        this.onItemSetEvent.forEach (el => el (this, index));
     }
 }

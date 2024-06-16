@@ -18,7 +18,7 @@ export default class Loot extends List
             if (item === null)
                 continue;
 
-            this.parent.lists.get ('inventory')!.addItem (item);
+            this.parent.inventory.addItem (item);
             if (item.quantity <= 0)
                 item = this.items[i] = null;
 

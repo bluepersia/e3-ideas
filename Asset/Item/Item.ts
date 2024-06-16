@@ -9,6 +9,18 @@ export interface IItem extends IAsset, ICloneable<IItem>
     spaceLeft:number;
 
     addToStack: (count:number) => number;
+    getData: () => IItemData;
+}
+
+export interface IItemData 
+{
+    id:string;
+    quantity:number;
+}
+
+export class ItemData implements IItemData 
+{
+    constructor (public id:string, public quantity:number) {}
 }
 
 
@@ -41,5 +53,11 @@ export default class Item extends Asset implements IItem
     {
         const newItem = Object.create (this) as IItem;
         return newItem;
+    }
+
+
+    getData () : IItemData
+    {
+        return new ItemData (this.id, this.quantity);
     }
 }

@@ -75,7 +75,7 @@ export default class Enemy extends Entity
         });
 
         for (const item of items)
-            target.lists.get ('loot')!.addItem (item!);
+            target.loot.addItem (item!);
 
     }
 

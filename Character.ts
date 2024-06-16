@@ -6,11 +6,19 @@ import AttackStat from "./Stat/AttackStat";
 import HealthStat from "./Stat/HealthStat";
 import ManaStat from "./Stat/ManaStat";
 import Stat, { IStat } from "./Stat/Stat";
+import Inventory, { IInventory } from "./List/Inventory";
+import Equipment, { IEquipment } from "./List/Equipment";
+import Loot, { ILoot } from "./List/Loot";
 
 export interface ICharacter  extends IEntity
 {
     isMage:boolean;
     xp:XPStat;
+
+    inventory:IInventory;
+    equipment:IEquipment;
+
+    loot:ILoot;
 
     getSkillById: (skillId:string) => ISkill|null;
 
@@ -41,6 +49,12 @@ export default class Character extends Entity implements ICharacter {
         ['mana', new ManaStat (this)],
         ['attack', new AttackStat(this)]
     ]);
+
+    inventory: IInventory = new Inventory (this);
+    equipment: IEquipment = new Equipment (this);
+
+    loot: ILoot = new Loot (this);
+    
 
     getSkillById (skillId:string) : ISkill | null
     {

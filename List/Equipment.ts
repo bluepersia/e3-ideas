@@ -16,6 +16,8 @@ export default class Equipment extends List implements IEquipment
     }
     override onItemSet(index: number, prev: IItem | null, curr: IItem | null): void {
         
+        super.onItemSet (index, prev, curr);
+        
         if (prev === curr)
             return;
 
