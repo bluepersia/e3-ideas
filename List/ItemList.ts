@@ -16,6 +16,7 @@ export interface IItemList
     addItem: (item:IItem) => void;
 
     validate: (item:IItem|null, index:number) => boolean;
+    validateAndSetItem: (index:number, item:IItem|null) => TransferType;
     //onItemSet: (index:number, prev:IItem|null, curr:IItem|null) => void;
 
 }
@@ -72,10 +73,10 @@ export default class ItemList implements IItemList
         const prev = this._items[index];
         this._items[index] = item;
 
-        //Listen for quantity changes
         if (prev)
             prev.onQuantityChangedEvent = [];
         
+        //Listen for quantity changes
         if (item)
             item.onQuantityChangedEvent = [() => {
 
@@ -91,38 +92,46 @@ export default class ItemList implements IItemList
         this.onItemSet (index, prev, item);
     }
 
-    setItem (index:number, item:IItem|null) : TransferType 
+    public setItem (index:number, item:IItem|null) : TransferType
     {
         if (item === null)
-        {
-            this.innerSetItem (index, null);
-            return TransferType.Replaced;
-        }
-        const inventoryItem = this._items[index];
-        //let count = 0;
+            {
+                this.innerSetItem (index, null);
+                return TransferType.Replaced;
+            }
+            const inventoryItem = this._items[index];
+            //let count = 0;
+    
+            if (inventoryItem === null || inventoryItem.id !== item.id)
+            {
+                const clone = item.clone ();
+    
+                //Commented out as items check for quantity internally
+                //if (clone.quantity > clone.quantityMax)
+                     //clone.quantity = clone.quantityMax;
+    
+                this.innerSetItem (index, clone);
+                //count += clone.quantity;
+                item.quantity -= clone.quantity;
+    
+                return TransferType.Replaced;
+            }
+             else if (inventoryItem.id === item.id)
+            {
+                const added = inventoryItem.addToStack (item.quantity);
+                item.quantity -= added;
+                return TransferType.Stacked;
+                //count += added;
+            }
+            return TransferType.None;
+    }
 
-        if (inventoryItem === null || inventoryItem.id !== item.id)
-        {
-            const clone = item.clone ();
+    validateAndSetItem (index:number, item:IItem|null) : TransferType 
+    {
+        if (!this.validate (item, index))
+            return TransferType.None;
 
-            //Commented out as items check for quantity internally
-            //if (clone.quantity > clone.quantityMax)
-                 //clone.quantity = clone.quantityMax;
-
-            this.innerSetItem (index, clone);
-            //count += clone.quantity;
-            item.quantity -= clone.quantity;
-
-            return TransferType.Replaced;
-        }
-         else if (inventoryItem.id === item.id)
-        {
-            const added = inventoryItem.addToStack (item.quantity);
-            item.quantity -= added;
-            return TransferType.Stacked;
-            //count += added;
-        }
-        return TransferType.None;
+        return this.setItem (index, item);
     }
 
     swapItems (other: IItemList, otherIndex: number, index: number) : void
@@ -172,4 +181,6 @@ export default class ItemList implements IItemList
     {
         this.onQuantityChangedEvent.forEach (el => el (this, index));
     }
+    
+   
 }
