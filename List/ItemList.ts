@@ -159,10 +159,9 @@ export default class ItemList implements IItemList
             const thisItem = this._items[i];
             
             if (thisItem === null || thisItem.id === item.id)
-                this.setItem (i, item);
+                this.validateAndSetItem (i, item);
 
            // count += this.setItem (i, item);
-           this.setItem (i, item);
 
             if (item.quantity <= 0)
                 break;
