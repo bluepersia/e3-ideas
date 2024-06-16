@@ -20,6 +20,13 @@ export interface IList
 
 }
 
+export enum TransferType 
+{
+    None,
+    Stacked,
+    Replaced
+}
+
 export default class List implements IList
 {
     protected _items:(IItem|null)[] = [];
@@ -67,6 +74,9 @@ export default class List implements IList
         this._items[index] = item;
 
         //Listen for quantity changes
+        if (prev)
+            prev.onQuantityChangedEvent = [];
+        
         if (item)
             item.onQuantityChangedEvent = [() => {
 
@@ -82,34 +92,38 @@ export default class List implements IList
         this.onItemSet (index, prev, item);
     }
 
-    setItem (index:number, item:IItem|null) : number 
+    setItem (index:number, item:IItem|null) : TransferType 
     {
         if (item === null)
         {
             this.innerSetItem (index, null);
-            return 0;
+            return TransferType.Replaced;
         }
         const inventoryItem = this._items[index];
-        let count = 0;
+        //let count = 0;
 
         if (inventoryItem === null || inventoryItem.id !== item.id)
         {
             const clone = item.clone ();
-            if (clone.quantity > clone.quantityMax)
-                 clone.quantity = clone.quantityMax;
-                
+
+            //Commented out as items check for quantity internally
+            //if (clone.quantity > clone.quantityMax)
+                 //clone.quantity = clone.quantityMax;
+
             this.innerSetItem (index, clone);
-            count += clone.quantity;
+            //count += clone.quantity;
             item.quantity -= clone.quantity;
+
+            return TransferType.Replaced;
         }
          else if (inventoryItem.id === item.id)
         {
             const added = inventoryItem.addToStack (item.quantity);
             item.quantity -= added;
-            count += added;
+            return TransferType.Stacked;
+            //count += added;
         }
-
-        return count;
+        return TransferType.None;
     }
 
     swapItems (other: IList, otherIndex: number, index: number) : void
@@ -117,9 +131,8 @@ export default class List implements IList
         const otherItem = other.items[otherIndex]!;
         const thisItem = this.items[index];
 
-        this.setItem (index, otherItem);
-
-        if (thisItem === null || otherItem.id !== thisItem.id)
+        //If item was replaced, we swap them out
+        if (this.setItem (index, otherItem) === TransferType.Replaced)
             other.setItem (otherIndex, thisItem);
     }
 

@@ -38,6 +38,11 @@ export default class Item extends Asset implements IItem
         if (value === this._quantity)
             return;
 
+        if (value > this.quantityMax)
+            value = this.quantityMax;
+        else if (value < 0)
+            value = 0;
+
         this._quantity = value;
         this.onQuantityChangedEvent.forEach (el => el ());
     }
