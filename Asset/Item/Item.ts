@@ -58,14 +58,12 @@ export default class Item extends Asset implements IItem
 
     addToStack (count:number) : number 
     {
-        let quantity = this.quantity + count;
+        const spaceLeft = this.spaceLeft;
 
-        if (quantity > this.quantityMax)
-        {
-            const excess = quantity - this.quantityMax;
-            quantity = this.quantityMax;
-            count -= excess;
-        }
+        if (count > spaceLeft)
+            count = spaceLeft;
+        
+        this.quantity += count;
 
         return count;
     }
