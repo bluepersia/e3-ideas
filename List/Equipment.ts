@@ -18,7 +18,12 @@ export default class Equipment extends List implements IEquipment
         this.parent = parent;
     }
      override validate(item: IItem, index: number): boolean {
-        return (item as IEquipItem).validateEquip (this.parent, index);
+        const equipItem = item as IEquipItem;
+
+        if (!item)
+            return false;
+
+        return  equipItem.validateEquip (this.parent, index);
     }
     override onItemSet(index: number, prev: IItem | null, curr: IItem | null): void {
         
@@ -27,14 +32,7 @@ export default class Equipment extends List implements IEquipment
         if (prev === curr)
             return;
 
-        const prevEquip = prev as IEquipItem;
-
-        if (prevEquip)
-            prevEquip.unequip (this.parent);
-
-        const currEquip = curr as IEquipItem;
-
-        if (currEquip)
-            currEquip.equip (this.parent);
+        (prev as IEquipItem).unequip (this.parent);
+        (curr as IEquipItem).equip (this.parent);
     }
 }

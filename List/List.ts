@@ -15,7 +15,7 @@ export interface IList
     addItem: (item:IItem) => void;
 
     validate: (item:IItem, index:number) => boolean;
-    onItemSet: (index:number, prev:IItem|null, curr:IItem|null) => void;
+    //onItemSet: (index:number, prev:IItem|null, curr:IItem|null) => void;
 
 }
 
@@ -156,7 +156,7 @@ export default class List implements IList
         return true;
     }
 
-    onItemSet (index: number, prev: IItem | null, curr: IItem | null) : void
+    protected onItemSet (index: number, prev: IItem | null, curr: IItem | null) : void
     {
         this.onItemSetEvent.forEach (el => el (this, index));
     }
