@@ -72,6 +72,7 @@ export default class Room<TMap extends IMap> implements IRoomStrong<TMap>
 
     onPlayerLeft (player:Player) : void 
     {
+        this.removeListenersFromEntity (player.character);
         this.broadcast ('PlayerLeft', player.character.id);
     }
 
@@ -151,9 +152,6 @@ export class RoomTown extends Room<IMapTown> implements IRoomTown
         this.addListenersToEntity (player.character);
     }
 
-    override onPlayerLeft(player: Player): void {
-       this.removeListenersFromEntity (player.character);
-    }
 }
 
 interface IBattlePiece 
@@ -304,14 +302,14 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
 
     override onPlayerLeft(player: Player): void {
 
+        super.onPlayerLeft(player);
+
+        this.removeEntityFromBoard (player.character);
 
         if (this.getCurrentTurnEntity () === player.character)
             this.skipTurn ();
         
 
-       this.removeEntityFromBoard (player.character);
-
-        super.onPlayerLeft(player);
     }
   
 
@@ -329,7 +327,6 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
                         groupPiece.entity = null;
                         groupPiece.turnCount = 0;
                         this.broadcastToLobby ('RemoveLobbyPosition', true, i, j);
-                        this.removeListenersFromEntity (entity);
                     }
                 }
             }
@@ -494,6 +491,8 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
 
     endTurn () : void 
     {
+        this.board [this.turnGroup][this.turn[this.turnGroup]].turnCount++;
+
         if (this.map instanceof MapPvE)
         {
             if (this.countEntitiesAlive (1) <= 0)
