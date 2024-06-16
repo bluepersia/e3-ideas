@@ -10,6 +10,7 @@ export interface IItemList
 
     countItem: (itemId:string) => number;
     countSpaceFor: (item:IItem) => number;
+    
     setItem: (index:number, item:IItem|null) => TransferType;
     swapItems: (other:IItemList, otherIndex:number, index:number) => void;
     addItem: (item:IItem) => void;
