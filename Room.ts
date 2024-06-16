@@ -96,19 +96,14 @@ export default class Room<TMap extends IMap> implements IRoomStrong<TMap>
 
     protected onInventoryOpen (player:Player) : void 
     {
-        player.character.inventory.onItemSetEvent.push (this.onInventoryChanged);
+        player.character.inventory.onItemSetEvent.push ((target, index) => this.onListChanged ('Inventory',target, index));
     }
 
     protected onInventoryClose (player:Player) : void 
     {
         player.character.inventory.onItemSetEvent = [];
     }
-
-    private onInventoryChanged (target:IList, index:number) : void 
-    {
-        const data = target.items[index]?.getData() || null;
-        this.getPlayerByEntity (target.parent)?.send ('InventoryChanged', index, data ? JSON.stringify (data) : '')
-    }
+  
 
     protected onEquipmentClose (player:Player) : void 
     {
@@ -117,13 +112,13 @@ export default class Room<TMap extends IMap> implements IRoomStrong<TMap>
 
     protected onEquipmentOpen (player:Player) : void 
     {
-        player.character.equipment.onItemSetEvent.push (this.onEquipmentChanged);
+        player.character.equipment.onItemSetEvent.push ((target, index) => this.onListChanged ('Equipment',target, index));
     }
 
-    private onEquipmentChanged (target:IList, index:number) : void 
+    private onListChanged (targetId:string, target:IList, index:number) : void 
     {
         const data = target.items[index]?.getData() || null;
-        this.getPlayerByEntity (target.parent)?.send ('EquipmentChanged', index, data ? JSON.stringify (data) : '')
+        this.getPlayerByEntity (target.parent)?.send (`${targetId}Changed`, index, data ? JSON.stringify (data) : '')
     }
 
     protected onLevelChanged (entity:IEntity) : void 
