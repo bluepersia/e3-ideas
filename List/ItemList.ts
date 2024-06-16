@@ -1,5 +1,4 @@
 import { IItem } from "../Asset/Item/Item";
-import { ICharacter } from "../Character";
 
 export interface IItemList
 {
@@ -31,7 +30,6 @@ export enum TransferType
 export default class ItemList implements IItemList
 {
     protected _items:(IItem|null)[] = [];
-    public parent:ICharacter;
 
     public get items() :(IItem|null)[]
     {
