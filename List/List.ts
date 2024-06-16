@@ -7,6 +7,7 @@ export interface IList
     maxCount:number;
 
     onItemSetEvent: ((target:IList, index:number) => void)[];
+    onQuantityChangedEvent: ((target:IList, index:number) => void)[];
 
     countItem: (item:IItem) => number;
     countSpaceFor: (item:IItem) => number;
@@ -39,6 +40,7 @@ export default class List implements IList
     maxCount:number = 10;
 
     onItemSetEvent: ((target:IList, index: number) => void)[] = [];
+    onQuantityChangedEvent: ((target: IList, index: number) => void)[] = [];
 
     constructor ()
     {
@@ -83,7 +85,7 @@ export default class List implements IList
                     return;
                 }
 
-                this.onItemSet (index, item, item);
+                this.onQuantityChanged (index);
         }]
 
         this.onItemSet (index, prev, item);
@@ -129,7 +131,7 @@ export default class List implements IList
         const thisItem = this.items[index];
 
         //If item was replaced, we swap them out
-        if (this.setItem (index, otherItem) === TransferType.Replaced)
+        if (this.setItem (index, otherItem) === TransferType.Replaced && thisItem)
             other.setItem (otherIndex, thisItem);
     }
 
@@ -159,5 +161,10 @@ export default class List implements IList
     protected onItemSet (index: number, prev: IItem | null, curr: IItem | null) : void
     {
         this.onItemSetEvent.forEach (el => el (this, index));
+    }
+
+    protected onQuantityChanged (index:number) : void 
+    {
+        this.onQuantityChangedEvent.forEach (el => el (this, index));
     }
 }
