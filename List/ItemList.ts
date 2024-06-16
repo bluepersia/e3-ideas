@@ -23,7 +23,7 @@ export interface IItemList
     addItem: (item:IItem) => void;
 
     validate: (item:IItem|null, index:number) => boolean;
-    validateAndSetItem: (index:number, item:IItem|null) => TransferType;
+    forceSetItem: (index:number, item:IItem|null) => TransferType;
     //onItemSet: (index:number, prev:IItem|null, curr:IItem|null) => void;
 
 }
@@ -93,7 +93,7 @@ export default class ItemList implements IItemList
         this.onItemSet (index, prev, item);
     }
 
-    public setItem (index:number, item:IItem|null) : TransferType
+    public forceSetItem (index:number, item:IItem|null) : TransferType
     {
         if (item === null)
             {
@@ -127,7 +127,7 @@ export default class ItemList implements IItemList
             return TransferType.None;
     }
 
-    validateAndSetItem (index:number, item:IItem|null) : TransferType 
+    setItem (index:number, item:IItem|null) : TransferType 
     {
         if (!this.validate (item, index))
             return TransferType.None;
@@ -143,8 +143,8 @@ export default class ItemList implements IItemList
         if (this.validate (otherItem, index) && other.validate (thisItem, index))
         {
             //If item was replaced, we swap them out
-            if (this.setItem (index, otherItem) === TransferType.Replaced && thisItem)
-                other.setItem (otherIndex, thisItem);
+            if (this.forceSetItem (index, otherItem) === TransferType.Replaced && thisItem)
+                other.forceSetItem (otherIndex, thisItem);
         }
     }
 
@@ -159,7 +159,7 @@ export default class ItemList implements IItemList
             const thisItem = this._items[i];
             
             if (thisItem === null || thisItem.id === item.id)
-                this.validateAndSetItem (i, item);
+                this.setItem (i, item);
 
            // count += this.setItem (i, item);
 
