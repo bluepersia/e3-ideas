@@ -15,7 +15,7 @@ export interface IItemList
     swapItems: (other:IItemList, otherIndex:number, index:number) => void;
     addItem: (item:IItem) => void;
 
-    //validate: (item:IItem, index:number) => boolean;
+    validate: (item:IItem|null, index:number) => boolean;
     //onItemSet: (index:number, prev:IItem|null, curr:IItem|null) => void;
 
 }
@@ -130,9 +130,12 @@ export default class ItemList implements IItemList
         const otherItem = other.items[otherIndex]!;
         const thisItem = this.items[index];
 
-        //If item was replaced, we swap them out
-        if (this.setItem (index, otherItem) === TransferType.Replaced && thisItem)
-            other.setItem (otherIndex, thisItem);
+        if (this.validate (otherItem, index) && other.validate (thisItem, index))
+        {
+            //If item was replaced, we swap them out
+            if (this.setItem (index, otherItem) === TransferType.Replaced && thisItem)
+                other.setItem (otherIndex, thisItem);
+        }
     }
 
    
@@ -155,7 +158,7 @@ export default class ItemList implements IItemList
    
 
 
-    protected validate (item: IItem, index: number) : boolean
+    public validate (item: IItem|null, index: number) : boolean
     {
         return true;
     }

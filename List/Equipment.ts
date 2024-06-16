@@ -17,7 +17,11 @@ export default class Equipment extends ItemList implements IEquipment
         super ();
         this.parent = parent;
     }
-     override validate(item: IItem, index: number): boolean {
+     override validate(item: IItem|null, index: number): boolean {
+
+        if (item === null)
+            return index != 0;
+
         const equipItem = item as IEquipItem;
 
         if (!item)
