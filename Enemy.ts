@@ -1,4 +1,5 @@
 import AssetLibrary from "./AssetLibrary";
+import { ICharacter } from "./Character";
 import { IDropData, IEnemyAsset } from "./EnemyAsset";
 import Entity, { IEntity } from "./Entity";
 import { IRoomBattle } from "./Room";
@@ -15,6 +16,7 @@ export interface IEnemy extends IEntity
 
 export default class Enemy extends Entity
 {
+    xp:number = 0;
     drops:IDropData[] = [];
 
     constructor (asset:IEnemyAsset) 
@@ -28,6 +30,7 @@ export default class Enemy extends Entity
     {
         this.name = asset.id;
         this.level = asset.level;
+        this.xp = asset.xp;
         this.drops = asset.drops;
     }
 
@@ -55,8 +58,16 @@ export default class Enemy extends Entity
     }
 
 
-    drop (target:IEntity) : void 
+    drop (target:ICharacter) : void 
     {
+        let xpMult= this.level - target.level;
+        if (xpMult > 4)
+            xpMult = 4;
+        else if (xpMult < 0)
+            xpMult = 0;
+
+        target.xp.current += (this.xp * xpMult);
+
         const items = this.drops.map (drop => drop.getResult ()).filter (drop => drop !== null).map (drop => {
             const item = AssetLibrary.getItemById (drop!.id);
             item!.quantity = drop!.quantity;

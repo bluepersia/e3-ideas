@@ -1,3 +1,4 @@
+import XPStat from "./ActiveStat/XPStat";
 import Entity, { IEntity } from "./Entity";
 import { IRoomBattle } from "./Room";
 import { ISkill } from "./Skill";
@@ -9,6 +10,7 @@ import Stat, { IStat } from "./Stat/Stat";
 export interface ICharacter  extends IEntity
 {
     isMage:boolean;
+    xp:XPStat;
 
     getSkillById: (skillId:string) => ISkill|null;
 
@@ -26,6 +28,8 @@ export default class Character extends Entity implements ICharacter {
     {
         return false;
     }
+
+    xp = new XPStat (this);
 
     stats = new Map<string, IStat>([
         ['strength', new Stat(5)],

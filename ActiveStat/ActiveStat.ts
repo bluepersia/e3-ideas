@@ -17,7 +17,7 @@ export default abstract class ActiveStat implements IActiveStat
     public onCurrentChangeEvent:((activeStat:IActiveStat) => void)[];
     public onMaxChangeEvent:((activeStat:IActiveStat) => void)[];
 
-    private _current:number;
+    protected _current:number;
     
     get current () : number 
     {
@@ -26,6 +26,9 @@ export default abstract class ActiveStat implements IActiveStat
 
     set current (value:number)
     {
+        if(value === this._current) return;
+        if (value < 0) value = 0;
+
         this._current = value;
         this.onCurrentChangeEvent.forEach (el => el (this));
     }

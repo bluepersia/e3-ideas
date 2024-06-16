@@ -1,5 +1,5 @@
-import { IEntity } from "./Entity";
-import { IItem } from "./Item/Item";
+import { IEntity } from "../Entity";
+import { IItem } from "../Item/Item";
 
 export interface IList
 {

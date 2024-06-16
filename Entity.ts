@@ -6,10 +6,10 @@ import Stat, { IStat } from "./Stat/Stat";
 import ActiveHealthStat from "./ActiveStat/HealthStat";
 import ActiveManaStat from "./ActiveStat/ManaStat";
 import { IActiveStat } from "./ActiveStat/ActiveStat";
-import { IList } from "./List";
-import Inventory from "./Inventory";
-import Equipment from "./Equipment";
-import Loot from "./Loot";
+import { IList } from "./List/List";
+import Inventory from "./List/Inventory";
+import Equipment from "./List/Equipment";
+import Loot from "./List/Loot";
 
 export interface IEntity 
 {

@@ -225,7 +225,7 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
         if (this.getCurrentTurnEntity () === player.character)
             this.skipTurn ();
         
-        
+
        this.removeEntityFromBoard (player.character);
 
         super.onPlayerLeft(player);
@@ -638,6 +638,13 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
         //Send health to client when it changes
         entity.health.onCurrentChangeEvent.push (() => this.broadcastToActivePlayers ('Health', entity.id, entity.health.current));
         entity.health.onMaxChangeEvent.push (() => this.broadcastToActivePlayers ('HealthMax', entity.id, entity.health.max));
+
+        if (entity instanceof Enemy)
+            entity.health.onCurrentChangeEvent.push (activeStat =>
+        {
+            if (activeStat.current <= 0)
+                this.getActivePlayers ().forEach (player => entity.drop (player.character));
+        });
     }
 
     removeListenersFromEntity (entity:IEntity) : void

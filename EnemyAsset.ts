@@ -4,6 +4,7 @@ import Asset, { IAsset } from "./Asset";
 export interface IEnemyAsset extends IAsset
 {
     level:number;
+    xp:number;
     drops:IDropData[];
 }
 
@@ -55,5 +56,6 @@ export class DropData
 export default class EnemyAsset extends Asset implements IEnemyAsset
 {
     level:number = 1;
+    xp:number = 100;
     drops: IDropData[] = [];
 }

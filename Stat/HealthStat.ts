@@ -7,7 +7,7 @@ export default class HealthStat extends PlayerStat
     public get base() : number {
         const end = this.character.stats.get ('endurance')!.value;
 
-        return (end * 10) + (Math.pow (1.5, this.character.level - 1) );
+        return (end * 10) * (this.character.level > 1 ? Math.pow (1.5, this.character.level - 1) : 1);
     }
     
 }
