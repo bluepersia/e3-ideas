@@ -2,7 +2,7 @@ import Entity, { EntityState, IEntity } from "./Entity";
 import Enemy from "./Enemy";
 import MapBase, { IMap, IMapTown, MapBattle, MapPVP, MapPvE } from "./Map";
 import Player from "./Player";
-import AssetLibrary from "./AssetLibrary";
+import AssetLibrary from "./Asset/AssetLibrary";
 
 const SCREEN_WIDTH = 900;
 

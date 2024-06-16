@@ -1,5 +1,5 @@
 import { BattlePiece } from "./Room";
-import { ISkill, ISkillLevel, TargetType } from "./Skill";
+import { ISkill, ISkillLevel, TargetType } from "./Asset/Skill";
 import { IRoomBattle } from "./Room";
 import Player from "./Player";
 import Stat, { IStat } from "./Stat/Stat";

@@ -1,9 +1,9 @@
-import AssetLibrary from "./AssetLibrary";
+import AssetLibrary from "./Asset/AssetLibrary";
 import { ICharacter } from "./Character";
-import { IDropData, IEnemyAsset } from "./EnemyAsset";
+import { IDropData, IEnemyAsset } from "./Asset/EnemyAsset";
 import Entity, { IEntity } from "./Entity";
 import { IRoomBattle } from "./Room";
-import { TargetType } from "./Skill";
+import { TargetType } from "./Asset/Skill";
 
 
 export interface IEnemy extends IEntity

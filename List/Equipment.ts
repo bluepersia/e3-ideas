@@ -1,5 +1,5 @@
-import { IItem} from "../Item/Item";
-import { IEquipItem } from "../Item/EquipItem";
+import { IItem} from "../Asset/Item/Item";
+import { IEquipItem } from "../Asset/Item/EquipItem";
 import List, { IList } from "./List";
 
 

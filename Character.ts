@@ -1,7 +1,7 @@
 import XPStat from "./ActiveStat/XPStat";
 import Entity, { IEntity } from "./Entity";
 import { IRoomBattle } from "./Room";
-import { ISkill } from "./Skill";
+import { ISkill } from "./Asset/Skill";
 import AttackStat from "./Stat/AttackStat";
 import HealthStat from "./Stat/HealthStat";
 import ManaStat from "./Stat/ManaStat";

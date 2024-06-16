@@ -1,5 +1,5 @@
 import { IEntity } from "../Entity";
-import { IItem } from "../Item/Item";
+import { IItem } from "../Asset/Item/Item";
 
 export interface IList
 {

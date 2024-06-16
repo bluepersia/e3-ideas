@@ -1,4 +1,4 @@
-import Asset, { IAsset } from "./Asset";
+import Asset, { IAsset } from "./Asset/Asset";
 import Room, { IRoom, RoomBattle } from "./Room";
 
 export interface IMap extends IAsset

@@ -1,4 +1,4 @@
-import Item, { IItem } from "../Item/Item";
+import Item, { IItem } from "../Asset/Item/Item";
 import List, { IList } from "./List";
 
 

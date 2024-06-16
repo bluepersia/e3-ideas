@@ -1,6 +1,6 @@
 import Asset, { IAsset } from "./Asset";
-import { ICloneable } from "./Cloneable";
-import { IEntity } from "./Entity";
+import { ICloneable } from "../Cloneable";
+import { IEntity } from "../Entity";
 
 
 export interface ISkill extends IAsset, ICloneable<ISkill>

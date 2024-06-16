@@ -1,6 +1,6 @@
 import { IEnemyAsset } from "./EnemyAsset";
 import { IItem } from "./Item/Item";
-import { IMap } from "./Map";
+import { IMap } from "../Map";
 import { ISkill } from "./Skill";
 
 
