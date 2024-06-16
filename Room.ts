@@ -427,19 +427,19 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
         const group =this.board[groupIndex];
         let turnIndex =this.turn[groupIndex];
 
-        while (turnIndex < group.length)
+        while (true)
         {
             let nextIndex = turnIndex + 1;
             if (nextIndex >= group.length)
                 nextIndex = 0;
 
             const piece = group[nextIndex];
-            if (piece.entity && piece.isActive)
+            if (piece.entity?.isAlive && piece.isActive)
             {
                 this.turnGroup = groupIndex;
                 this.turn[groupIndex] =nextIndex;
                 this.startTurn ();
-                return;
+                break;
             }
             turnIndex = nextIndex;
         }
@@ -453,23 +453,25 @@ export class RoomBattle extends Room<MapBattle> implements IRoomBattle
         let groupIndex = this.turnGroup;
         let group = this.board[groupIndex];
 
-        while (turnIndex < group.length)
+        while (true)
         {
-            const nextIndex = turnIndex + 1;
+            let nextIndex = turnIndex + 1;
             if (nextIndex >= group.length)
             {
                 groupIndex = groupIndex === 0 ? 1 : 0;
                 group = this.board[groupIndex];
-                turnIndex = -1;
+                nextIndex = 0;
                 continue;
             }
             const piece = group[nextIndex];
-            if (piece.entity && piece.isActive)
+            if (piece.entity?.isAlive && piece.isActive)
             {
                 this.turnGroup = groupIndex;
                 this.turn[groupIndex] = nextIndex;
                 this.startTurn ();
+                break;
             }
+            turnIndex = nextIndex;
         }
     }
 
