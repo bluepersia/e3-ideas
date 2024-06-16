@@ -186,6 +186,7 @@ export default class ItemList implements IItemList
             quantity -= item.quantity;
             item.quantity = 0;
         }
+    }
 
     public validate (item: IItem|null, index: number) : boolean
     {
