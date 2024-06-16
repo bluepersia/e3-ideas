@@ -1,5 +1,12 @@
 import { IItem } from "../Asset/Item/Item";
 
+export enum TransferType 
+{
+    None,
+    Stacked,
+    Replaced
+}
+
 export interface IItemList
 {
     items:(IItem|null)[];
@@ -10,7 +17,7 @@ export interface IItemList
 
     countItem: (itemId:string) => number;
     countSpaceFor: (item:IItem) => number;
-    
+
     setItem: (index:number, item:IItem|null) => TransferType;
     swapItems: (other:IItemList, otherIndex:number, index:number) => void;
     addItem: (item:IItem) => void;
@@ -21,12 +28,7 @@ export interface IItemList
 
 }
 
-export enum TransferType 
-{
-    None,
-    Stacked,
-    Replaced
-}
+
 
 export default class ItemList implements IItemList
 {
@@ -98,10 +100,10 @@ export default class ItemList implements IItemList
                 this.innerSetItem (index, null);
                 return TransferType.Replaced;
             }
-            const inventoryItem = this._items[index];
+            const thisItem = this._items[index];
             //let count = 0;
     
-            if (inventoryItem === null || inventoryItem.id !== item.id)
+            if (thisItem === null || thisItem.id !== item.id)
             {
                 const clone = item.clone ();
     
@@ -115,9 +117,9 @@ export default class ItemList implements IItemList
     
                 return TransferType.Replaced;
             }
-             else if (inventoryItem.id === item.id)
+             else if (thisItem.id === item.id)
             {
-                const added = inventoryItem.addToStack (item.quantity);
+                const added = thisItem.addToStack (item.quantity);
                 item.quantity -= added;
                 return TransferType.Stacked;
                 //count += added;
@@ -154,6 +156,11 @@ export default class ItemList implements IItemList
 
         for (let i = 0; i < this._items.length; i++)
         {
+            const thisItem = this._items[i];
+            
+            if (thisItem === null || thisItem.id === item.id)
+                this.setItem (i, item);
+
            // count += this.setItem (i, item);
            this.setItem (i, item);
 
