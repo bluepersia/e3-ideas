@@ -8,7 +8,7 @@ export interface IItemList
     onItemSetEvent: ((target:IItemList, index:number) => void)[];
     onQuantityChangedEvent: ((target:IItemList, index:number) => void)[];
 
-    countItem: (item:IItem) => number;
+    countItem: (itemId:string) => number;
     countSpaceFor: (item:IItem) => number;
     setItem: (index:number, item:IItem|null) => TransferType;
     swapItems: (other:IItemList, otherIndex:number, index:number) => void;
@@ -48,9 +48,9 @@ export default class ItemList implements IItemList
     }
 
     
-    countItem (item:IItem) : number 
+    countItem (itemId:string) : number 
     {
-        return this._items.reduce ((prev, curr) => curr?.id === item.id ? prev + curr.quantity : prev , 0);
+        return this._items.reduce ((prev, curr) => curr?.id === itemId ? prev + curr.quantity : prev , 0);
     }
     countSpaceFor (item:IItem) : number
     {
