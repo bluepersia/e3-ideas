@@ -3,7 +3,7 @@ import Enemy from "./Enemy";
 import MapBase, { IMap, IMapTown, MapBattle, MapPVP, MapPvE } from "./Map";
 import Player from "./Player";
 import AssetLibrary from "./Asset/AssetLibrary";
-import { IList } from "./List/List";
+import { IItemList } from "./List/ItemList";
 import { ICharacter } from "./Character";
 
 const SCREEN_WIDTH = 900;
@@ -97,7 +97,7 @@ export default class Room<TMap extends IMap> implements IRoomStrong<TMap>
 
     protected onInventoryOpen (player:Player) : void 
     {
-        player.character.inventory.onItemSetEvent.push ((target, index) => this.onListChanged ('Inventory', player.character, target, index));
+        player.character.inventory.onItemSetEvent.push ((target, index) => this.onItemListChanged ('Inventory', player.character, target, index));
     }
 
     protected onInventoryClose (player:Player) : void 
@@ -113,10 +113,10 @@ export default class Room<TMap extends IMap> implements IRoomStrong<TMap>
 
     protected onEquipmentOpen (player:Player) : void 
     {
-        player.character.equipment.onItemSetEvent.push ((target, index) => this.onListChanged ('Equipment',player.character, target, index));
+        player.character.equipment.onItemSetEvent.push ((target, index) => this.onItemListChanged ('Equipment',player.character, target, index));
     }
 
-    private onListChanged (targetId:string, parent:ICharacter, target:IList, index:number) : void 
+    private onItemListChanged (targetId:string, parent:ICharacter, target:IItemList, index:number) : void 
     {
         const data = target.items[index]?.getData() || null;
         this.getPlayerByEntity (parent)?.send (`${targetId}Changed`, index, data ? JSON.stringify (data) : '')

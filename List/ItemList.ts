@@ -1,21 +1,21 @@
 import { IItem } from "../Asset/Item/Item";
 import { ICharacter } from "../Character";
 
-export interface IList
+export interface IItemList
 {
     items:(IItem|null)[];
     maxCount:number;
 
-    onItemSetEvent: ((target:IList, index:number) => void)[];
-    onQuantityChangedEvent: ((target:IList, index:number) => void)[];
+    onItemSetEvent: ((target:IItemList, index:number) => void)[];
+    onQuantityChangedEvent: ((target:IItemList, index:number) => void)[];
 
     countItem: (item:IItem) => number;
     countSpaceFor: (item:IItem) => number;
     setItem: (index:number, item:IItem|null) => TransferType;
-    swapItems: (other:IList, otherIndex:number, index:number) => void;
+    swapItems: (other:IItemList, otherIndex:number, index:number) => void;
     addItem: (item:IItem) => void;
 
-    validate: (item:IItem, index:number) => boolean;
+    //validate: (item:IItem, index:number) => boolean;
     //onItemSet: (index:number, prev:IItem|null, curr:IItem|null) => void;
 
 }
@@ -27,7 +27,7 @@ export enum TransferType
     Replaced
 }
 
-export default class List implements IList
+export default class ItemList implements IItemList
 {
     protected _items:(IItem|null)[] = [];
     public parent:ICharacter;
@@ -39,8 +39,8 @@ export default class List implements IList
 
     maxCount:number = 10;
 
-    onItemSetEvent: ((target:IList, index: number) => void)[] = [];
-    onQuantityChangedEvent: ((target: IList, index: number) => void)[] = [];
+    onItemSetEvent: ((target:IItemList, index: number) => void)[] = [];
+    onQuantityChangedEvent: ((target: IItemList, index: number) => void)[] = [];
 
     constructor ()
     {
@@ -125,7 +125,7 @@ export default class List implements IList
         return TransferType.None;
     }
 
-    swapItems (other: IList, otherIndex: number, index: number) : void
+    swapItems (other: IItemList, otherIndex: number, index: number) : void
     {
         const otherItem = other.items[otherIndex]!;
         const thisItem = this.items[index];
@@ -152,8 +152,10 @@ export default class List implements IList
         //return count;
     }
 
+   
 
-    validate (item: IItem, index: number) : boolean
+
+    protected validate (item: IItem, index: number) : boolean
     {
         return true;
     }

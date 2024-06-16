@@ -6,7 +6,7 @@ import Stat, { IStat } from "./Stat/Stat";
 import ActiveHealthStat from "./ActiveStat/HealthStat";
 import ActiveManaStat from "./ActiveStat/ManaStat";
 import { IActiveStat } from "./ActiveStat/ActiveStat";
-import { IList } from "./List/List";
+import { IItemList } from "./List/ItemList";
 import Inventory from "./List/Inventory";
 import Equipment from "./List/Equipment";
 import Loot from "./List/Loot";

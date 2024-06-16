@@ -1,12 +1,12 @@
-import List, { IList } from "./List";
+import ItemList, { IItemList } from "./ItemList";
 
 
-export interface ILoot extends IList
+export interface ILoot extends IItemList
 {
     takeAll: () => void;
 }
 
-export default class Loot extends List 
+export default class Loot extends ItemList 
 {
     takeAll () : void 
     {

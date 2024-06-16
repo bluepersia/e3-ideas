@@ -1,16 +1,16 @@
 import { IItem} from "../Asset/Item/Item";
 import { IEquipItem } from "../Asset/Item/EquipItem";
-import List, { IList } from "./List";
 import { ICharacter } from "../Character";
+import ItemList, { IItemList } from "./ItemList";
 
 
-export interface IEquipment extends IList
+export interface IEquipment extends IItemList
 {
     parent:ICharacter;
 }
 
 
-export default class Equipment extends List implements IEquipment 
+export default class Equipment extends ItemList implements IEquipment 
 {
     constructor (parent:ICharacter) 
     {

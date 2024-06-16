@@ -1,15 +1,15 @@
 import Item, { IItem } from "../Asset/Item/Item";
-import List, { IList } from "./List";
+import ItemList, { IItemList } from "./ItemList";
 
 
-export interface IInventory extends IList
+export interface IInventory extends IItemList
 {
 
     
 }
 
 
-export default class Inventory extends List implements IInventory
+export default class Inventory extends ItemList implements IInventory
 {
     
     maxCount:number = 40;
