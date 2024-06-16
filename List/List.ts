@@ -5,15 +5,14 @@ export interface IList
 {
     items:(IItem|null)[];
     maxCount:number;
-    parent:ICharacter;
 
     onItemSetEvent: ((target:IList, index:number) => void)[];
 
     countItem: (item:IItem) => number;
     countSpaceFor: (item:IItem) => number;
-    setItem: (index:number, item:IItem|null) => number;
+    setItem: (index:number, item:IItem|null) => TransferType;
     swapItems: (other:IList, otherIndex:number, index:number) => void;
-    addItem: (item:IItem) => number;
+    addItem: (item:IItem) => void;
 
     validate: (item:IItem, index:number) => boolean;
     onItemSet: (index:number, prev:IItem|null, curr:IItem|null) => void;
@@ -41,10 +40,8 @@ export default class List implements IList
 
     onItemSetEvent: ((target:IList, index: number) => void)[] = [];
 
-    constructor (parent:ICharacter)
+    constructor ()
     {
-        this.parent = parent;
-        
         for (let i = 0; i < this.maxCount; i++)
             this._items.push (null);
     }
@@ -138,18 +135,19 @@ export default class List implements IList
 
    
 
-    addItem (item:IItem) : number 
+    addItem (item:IItem) : void 
     {
-        let count = 0;
+        //let count = 0;
 
         for (let i = 0; i < this._items.length; i++)
         {
-            count += this.setItem (i, item);
+           // count += this.setItem (i, item);
+           this.setItem (i, item);
 
             if (item.quantity <= 0)
                 break;
         }
-        return count;
+        //return count;
     }
 
 

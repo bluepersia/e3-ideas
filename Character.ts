@@ -50,10 +50,10 @@ export default class Character extends Entity implements ICharacter {
         ['attack', new AttackStat(this)]
     ]);
 
-    inventory: IInventory = new Inventory (this);
+    inventory: IInventory = new Inventory ();
     equipment: IEquipment = new Equipment (this);
 
-    loot: ILoot = new Loot (this);
+    loot: ILoot = new Loot ();
     
 
     getSkillById (skillId:string) : ISkill | null

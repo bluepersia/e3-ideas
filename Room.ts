@@ -97,7 +97,7 @@ export default class Room<TMap extends IMap> implements IRoomStrong<TMap>
 
     protected onInventoryOpen (player:Player) : void 
     {
-        player.character.inventory.onItemSetEvent.push ((target, index) => this.onListChanged ('Inventory',target, index));
+        player.character.inventory.onItemSetEvent.push ((target, index) => this.onListChanged ('Inventory', player.character, target, index));
     }
 
     protected onInventoryClose (player:Player) : void 
@@ -113,13 +113,13 @@ export default class Room<TMap extends IMap> implements IRoomStrong<TMap>
 
     protected onEquipmentOpen (player:Player) : void 
     {
-        player.character.equipment.onItemSetEvent.push ((target, index) => this.onListChanged ('Equipment',target, index));
+        player.character.equipment.onItemSetEvent.push ((target, index) => this.onListChanged ('Equipment',player.character, target, index));
     }
 
-    private onListChanged (targetId:string, target:IList, index:number) : void 
+    private onListChanged (targetId:string, parent:ICharacter, target:IList, index:number) : void 
     {
         const data = target.items[index]?.getData() || null;
-        this.getPlayerByEntity (target.parent)?.send (`${targetId}Changed`, index, data ? JSON.stringify (data) : '')
+        this.getPlayerByEntity (parent)?.send (`${targetId}Changed`, index, data ? JSON.stringify (data) : '')
     }
 
     protected onLevelChanged (entity:IEntity) : void 
